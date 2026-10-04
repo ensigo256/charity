@@ -40,7 +40,6 @@ import ScrollReveal from "@/lib/fontAnimation";
 import { Splide, SplideSlide } from "@splidejs/react-splide";
 import "@splidejs/react-splide/css";
 import { useState, useEffect } from "react";
-import PayButton from "@/lib/flutterWavePayment";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/query-client";
 export default function Home() {
@@ -108,13 +107,6 @@ export default function Home() {
     "https://html.kodesolution.com/2026/hopenest-html/images/resource/client-1-3.jpg",
     "https://html.kodesolution.com/2026/hopenest-html/images/resource/client-1-4.jpg",
   ];
-
-  const donation = {
-    name: name,
-    email: email,
-    companyName: companyName,
-    amount: amount,
-  };
 
   const handleNewsletterSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -504,11 +496,22 @@ export default function Home() {
                   </p>
                 </div>
 
-                {/* <Button className="w-full bg-primary hover:bg-accent/90 text-white font-bold py-4 text-lg rounded-lg">
+                <Button
+                  type="button"
+                  disabled
+                  className="w-full cursor-not-allowed bg-primary/60 text-white font-bold py-4 text-lg rounded-lg opacity-80"
+                >
                   Donate Now
-                </Button> */}
+                </Button>
 
-                <PayButton donation={donation} />
+                <p className="text-xs text-muted-foreground leading-5">
+                  We are unable to process payments in this section at the moment.
+                  Please use the{" "}
+                  <Link href="/donate" className="font-semibold text-primary underline underline-offset-2">
+                    donation page
+                  </Link>{" "}
+                  to complete your contribution.
+                </p>
               </form>
             </div>
           </div>

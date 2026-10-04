@@ -73,6 +73,7 @@ export interface SponsorshipProfile {
   location?: string;
   needs?: string;
   monthlyNeed?: number;
+  publicPosterApproved?: boolean;
   education?: ChildEducation;
   reportCards?: ChildReportCard[];
   progress?: number;

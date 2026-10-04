@@ -3,7 +3,14 @@
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 import { v4 as uuidv4 } from "uuid";
 
-export default function PayButton({ donation }) {
+type DonationInput = {
+  amount: number;
+  email?: string;
+  phone?: string;
+  name?: string;
+};
+
+export default function PayButton({ donation }: { donation: DonationInput }) {
   const config: any = {
     public_key: process.env.NEXT_PUBLIC_FLUTTERWAVE_PUBLIC_KEY,
 

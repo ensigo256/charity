@@ -157,13 +157,13 @@ export function Footer() {
             <p>&copy; 2024 Seeds of Love Foundation. All rights reserved.</p>
             <div className="flex gap-6">
               <Link
-                href="#"
+                href="/privacy-policy"
                 className="hover:text-foreground transition-colors"
               >
                 Privacy Policy
               </Link>
               <Link
-                href="#"
+                href="/terms-of-service"
                 className="hover:text-foreground transition-colors"
               >
                 Terms of Service

@@ -8,6 +8,8 @@ import ProfileSection from "@/components/public/sponsor-details/profile-section"
 import { ProfileFieldGroup } from "@/components/public/sponsor-details/profile-field";
 import ImpactMetrics from "@/components/public/sponsor-details/impact-metrics";
 import RelatedProfiles from "@/components/public/sponsor-details/related-profiles";
+import { Button } from "@/components/ui/button";
+import { downloadChildPoster } from "@/lib/child-poster";
 import {
   User,
   Calendar,
@@ -18,6 +20,8 @@ import {
   Heart,
   Sparkles,
   Banknote,
+  Download,
+  Loader2,
 } from "lucide-react";
 
 interface SponsorDetailsContentProps {
@@ -33,6 +37,21 @@ export default function SponsorDetailsContent({
   const [activeTab, setActiveTab] = useState<
     "overview" | "education" | "family"
   >("overview");
+  const [isDownloadingPoster, setIsDownloadingPoster] = useState(false);
+  const [posterError, setPosterError] = useState("");
+
+  const handleDownloadPoster = async () => {
+    setIsDownloadingPoster(true);
+    setPosterError("");
+    try {
+      await downloadChildPoster(profile);
+    } catch (error) {
+      console.error("Unable to create child profile poster:", error);
+      setPosterError("Unable to create the poster. Please try again.");
+    } finally {
+      setIsDownloadingPoster(false);
+    }
+  };
 
   const needsList = Array.isArray(profile.needs)
     ? profile.needs
@@ -55,15 +74,6 @@ export default function SponsorDetailsContent({
             fields={[
               { label: "Given Name", value: profile.givenName, icon: <User size={16} /> },
               { label: "Gender", value: profile.gender, icon: <Sparkles size={16} /> },
-              {
-                label: "Date of Birth",
-                value: new Date(profile.dateOfBirth).toLocaleDateString("en-US", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                }),
-                icon: <Calendar size={16} />,
-              },
               { label: "Age", value: `${profile.age} years old`, icon: <Sparkles size={16} /> },
               { label: "Class/Grade", value: profile.class, icon: <Book size={16} /> },
               { label: "Nationality", value: profile.nationality, icon: <Globe size={16} /> },
@@ -186,6 +196,38 @@ export default function SponsorDetailsContent({
 
         <section className="relative py-8 sm:py-10 lg:py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <p className="max-w-xl text-sm text-muted-foreground">
+                Download a concise copy of this publicly shared profile to review offline.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDownloadPoster}
+                disabled={isDownloadingPoster || !profile.publicPosterApproved}
+              >
+                {isDownloadingPoster ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <Download className="mr-2 size-4" />
+                )}
+                {isDownloadingPoster
+                  ? "Preparing poster..."
+                  : profile.publicPosterApproved
+                    ? "Download profile poster"
+                    : "Profile poster not yet approved"}
+              </Button>
+            </div>
+            {!profile.publicPosterApproved ? (
+              <p className="mb-4 text-xs text-muted-foreground">
+                This profile is not currently approved for offline export.
+              </p>
+            ) : null}
+            {posterError ? (
+              <p role="alert" className="mb-4 text-sm text-destructive">
+                {posterError}
+              </p>
+            ) : null}
             <div className="mb-8 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2">
               {tabs.map((tab) => (
                 <button

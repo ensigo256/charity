@@ -9,6 +9,7 @@ interface ImpactMetricsProps {
 }
 
 export default function ImpactMetrics({ profile }: ImpactMetricsProps) {
+  const progressValue = Number(profile.progress ?? 0);
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -32,7 +33,7 @@ export default function ImpactMetrics({ profile }: ImpactMetricsProps) {
     {
       icon: Heart,
       label: "Progress",
-      value: `${profile.progress}%`,
+      value: `${progressValue}%`,
       color: "from-red-500 to-rose-500",
     },
     {
@@ -79,28 +80,28 @@ export default function ImpactMetrics({ profile }: ImpactMetricsProps) {
                 Sponsorship Support Level
               </p>
               <p className="text-3xl font-bold text-green-600">
-                {profile.progress}%
+                {progressValue}%
               </p>
             </div>
             <div className="relative h-3 rounded-full bg-gray-200/50 overflow-hidden">
               <motion.div
                 className="absolute inset-y-0 left-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"
                 initial={{ width: 0 }}
-                whileInView={{ width: `${profile.progress}%` }}
+                whileInView={{ width: `${progressValue}%` }}
                 viewport={{ once: true }}
                 transition={{ duration: 1.5, ease: "easeOut" }}
               />
             </div>
             <p className="text-sm text-gray-600">
-              {profile.progress < 50 &&
+              {progressValue < 50 &&
                 "Still building support - every contribution helps!"}
-              {profile.progress >= 50 &&
-                profile.progress < 75 &&
+              {progressValue >= 50 &&
+                progressValue < 75 &&
                 "Halfway there! Growing support reaching more impact."}
-              {profile.progress >= 75 &&
-                profile.progress < 100 &&
+              {progressValue >= 75 &&
+                progressValue < 100 &&
                 "Nearly at full support! Almost reaching maximum impact."}
-              {profile.progress >= 100 &&
+              {progressValue >= 100 &&
                 "Fully sponsored! Making maximum impact on this child's life."}
             </p>
           </div>

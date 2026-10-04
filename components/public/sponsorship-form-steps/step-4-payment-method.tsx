@@ -46,7 +46,7 @@ export default function Step4PaymentMethod({
   errors,
 }: Step4PaymentMethodProps) {
   const handleChange = (value: string) => {
-    onChange({ paymentMethod: value });
+    onChange({ paymentMethod: value as PaymentMethodData["paymentMethod"] });
   };
 
   return (

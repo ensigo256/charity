@@ -103,6 +103,7 @@ const initialFormState:any = {
   }>,
   progress: 0,
   sponsorshipStatus: "Available",
+  publicPosterApproved: false,
 };
 
 type FormState = typeof initialFormState;
@@ -424,6 +425,7 @@ export default function ChildrenDashboard() {
       reportCards: child.reportCards || [],
       progress: child.progress,
       sponsorshipStatus: child.sponsorshipStatus,
+      publicPosterApproved: child.publicPosterApproved ?? false,
     } as FormState);
     setImagePreview(child.image.url);
     setIsDialogOpen(true);
@@ -666,6 +668,7 @@ export default function ChildrenDashboard() {
         monthlyNeed: formState.monthlyNeed,
         education: nextEducation,
         sponsorshipStatus: formState.sponsorshipStatus,
+        publicPosterApproved: Boolean(formState.publicPosterApproved),
       };
       if (editingChild) {
         payload._id = editingChild._id;
@@ -1362,6 +1365,20 @@ export default function ChildrenDashboard() {
             {(imagePreview || formState.image.url) && <div className="relative h-48 w-48 overflow-hidden rounded-lg border"><img src={imagePreview || formState.image.url} alt="Preview" className="h-full w-full object-cover" /></div>}
             <input className="hidden" id="wizardImageInput" type="file" accept="image/*" onChange={handleImageInputChange} disabled={isUploadingImage} />
             <label htmlFor="wizardImageInput"><Button asChild type="button" disabled={isUploadingImage}><span><Upload size={16} className="mr-2" />{isUploadingImage ? "Uploading..." : "Upload image"}</span></Button></label>
+            <div className="flex items-start gap-3 rounded-md border border-border p-3">
+              <input
+                id="publicPosterApproved"
+                type="checkbox"
+                checked={Boolean(formState.publicPosterApproved)}
+                onChange={(event) =>
+                  setFormState({ ...formState, publicPosterApproved: event.target.checked })
+                }
+                className="mt-1 size-4 accent-primary"
+              />
+              <Label htmlFor="publicPosterApproved" className="text-sm leading-5">
+                Allow a downloadable public poster after confirming the child&apos;s photo and story are approved for offline sharing.
+              </Label>
+            </div>
           </div>
         );
     }

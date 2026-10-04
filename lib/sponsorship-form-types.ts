@@ -64,7 +64,7 @@ export const achPaymentSchema = z.object({
 });
 
 export const paymentMethodSchema = z.object({
-  paymentMethod: z.enum(['zelle', 'stripe', 'check',  'paypal', 'ach'], {
+  paymentMethod: z.enum(['zelle', 'stripe', 'check', 'paypal', 'ach', 'card'], {
     errorMap: () => ({ message: "Please select a payment method" }),
   }),
 });
@@ -108,7 +108,7 @@ export const DEFAULT_FORM_DATA: SponsorshipFormData = {
   sponsor: { fullName: "", email: "", phone: "", bio: "" },
   location: { address: "", country: "", city: "", state: "", region: "", zipCode: "" },
   donation: { amount: 50, period: "Monthly", remindByEmail: false },
-  paymentMethod: { paymentMethod: "card" },
+  paymentMethod: { paymentMethod: "ach" },
   payment: {
     cardName: "",
     cardNumber: "",

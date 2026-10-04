@@ -1,37 +1,15 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
+import { ArrowLeft, Check, Copy, Loader2, Upload, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, X } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
-import {
-  DEFAULT_FORM_DATA,
-  sponsorBioSchema,
-  locationSchema,
-  donationSchema,
-  paymentSchema,
-  paymentMethodSchema,
-  zellePaymentSchema,
-  checkPaymentSchema,
-  achPaymentSchema,
-  SponsorshipFormData,
-  SponsorData,
-  LocationData,
-  DonationData,
-  PaymentData,
-  PaymentMethodData,
-} from "@/lib/sponsorship-form-types";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import type { SponsorshipProfile } from "@/lib/child-profile";
-import { saveSponsorshipSubmission } from "@/lib/sponsorship-storage";
-import SponsorshipFormHeader from "./sponsorship-form-header";
-import Step1SponsorBio from "./sponsorship-form-steps/step-1-sponsor-bio";
-import Step2Location from "./sponsorship-form-steps/step-2-location";
-import Step3Donation from "./sponsorship-form-steps/step-3-donation";
-import Step4PaymentMethod from "./sponsorship-form-steps/step-4-payment-method";
-import Step5PaymentDetails from "./sponsorship-form-steps/step-5-payment-details";
-import SponsorshipSuccessModal from "./sponsorship-success-modal";
 import { apiRequest } from "@/lib/query-client";
+import { uploadImageToCloudinary } from "@/lib/cloudinary-upload";
 
 interface SponsorshipFormModalProps {
   isOpen: boolean;
@@ -39,401 +17,397 @@ interface SponsorshipFormModalProps {
   childProfile: SponsorshipProfile;
 }
 
-interface FormErrors {
-  sponsor: Partial<Record<keyof SponsorData, string>>;
-  location: Partial<Record<keyof LocationData, string>>;
-  donation: Partial<Record<keyof DonationData, string>>;
-  paymentMethod: Partial<Record<keyof PaymentMethodData, string>>;
-  payment: Partial<Record<string, string>>;
+interface SponsorFormValues {
+  name: string;
+  email: string;
+  phone: string;
+  country: string;
+  address: string;
+  city: string;
+  state: string;
+  region: string;
+  zipCode: string;
+  bio: string;
+  amount: string;
+  period: "Monthly" | "3 Months" | "6 Months" | "Yearly";
+  remindByEmail: boolean;
+  image: { url: string; public_id: string };
 }
+
+interface PledgeReceipt {
+  reference: string;
+  amount: number;
+  currency: string;
+  period: string;
+  instructions: Record<string, string>;
+}
+
+const initialForm: SponsorFormValues = {
+  name: "",
+  email: "",
+  phone: "",
+  country: "",
+  address: "",
+  city: "",
+  state: "",
+  region: "",
+  zipCode: "",
+  bio: "",
+  amount: "50",
+  period: "Monthly",
+  remindByEmail: true,
+  image: { url: "", public_id: "" },
+};
+
+const locationFields = [
+  ["address", "Address"],
+  ["country", "Country of origin"],
+  ["city", "City"],
+  ["state", "State"],
+  ["region", "Region"],
+  ["zipCode", "Zip code"],
+] as const;
 
 export default function SponsorshipFormModal({
   isOpen,
   onClose,
   childProfile,
 }: SponsorshipFormModalProps) {
-  const closeButtonRef = useRef(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] =
-    useState<SponsorshipFormData>(DEFAULT_FORM_DATA);
-  const [errors, setErrors] = useState<FormErrors>({
-    sponsor: {},
-    location: {},
-    donation: {},
-    paymentMethod: {},
-    payment: {},
-  });
+  const [form, setForm] = useState<SponsorFormValues>(initialForm);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [submissionData, setSubmissionData] = useState<any>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [receipt, setReceipt] = useState<PledgeReceipt | null>(null);
+  const [copied, setCopied] = useState(false);
+  const requestId = useRef("");
 
-  const getDefaultMailingAddress = () => {
-    return [
-      formData.location.address,
-      formData.location.city,
-      formData.location.state,
-      formData.location.zipCode,
-    ]
-      .filter(Boolean)
-      .join(", ");
-  };
+  useEffect(() => {
+    if (!isOpen) return;
+    requestId.current = crypto.randomUUID();
+    setForm(initialForm);
+    setErrors({});
+    setSubmitError("");
+    setReceipt(null);
+    setCopied(false);
+  }, [isOpen]);
 
-  const validateStep = useCallback(
-    (step: number): boolean => {
-      const newErrors: FormErrors = {
-        sponsor: {},
-        location: {},
-        donation: {},
-        paymentMethod: {},
-        payment: {},
-      };
+  const updateField = <K extends keyof SponsorFormValues>(
+    field: K,
+    value: SponsorFormValues[K],
+  ) => setForm((current) => ({ ...current, [field]: value }));
 
-      try {
-        if (step === 1) {
-          sponsorBioSchema.parse(formData.sponsor);
-        } else if (step === 2) {
-          locationSchema.parse(formData.location);
-        } else if (step === 3) {
-          donationSchema.parse(formData.donation);
-        } else if (step === 4) {
-          paymentMethodSchema.parse(formData.paymentMethod);
-        } else if (step === 5) {
-          const method = formData.paymentMethod.paymentMethod;
-          if (method === "card") {
-            paymentSchema.parse(formData.payment);
-          } else if (method === "zelle") {
-            zellePaymentSchema.parse(formData.payment);
-          } else if (method === "check") {
-            checkPaymentSchema.parse(formData.payment);
-          } else if (method === "ach") {
-            achPaymentSchema.parse(formData.payment);
-          }
-        }
-        setErrors(newErrors);
-        return true;
-      } catch (error: any) {
-        if (error.errors) {
-          error.errors.forEach((err: any) => {
-            const field = err.path[0] as string;
-            let stepKey: keyof FormErrors;
-            if (step === 1) stepKey = "sponsor";
-            else if (step === 2) stepKey = "location";
-            else if (step === 3) stepKey = "donation";
-            else if (step === 4) stepKey = "paymentMethod";
-            else stepKey = "payment";
-            (newErrors[stepKey] as any)[field] = err.message;
-          });
-        }
-        setErrors(newErrors);
-        return false;
-      }
-    },
-    [formData],
-  );
+  const handleImageUpload = async (file?: File) => {
+    if (!file) return;
+    if (
+      !["image/jpeg", "image/png", "image/webp"].includes(file.type) ||
+      file.size > 5 * 1024 * 1024
+    ) {
+      setSubmitError("Choose a JPEG, PNG, or WebP image up to 5 MB.");
+      return;
+    }
 
-  const handleNextStep = () => {
-    if (!validateStep(currentStep)) return;
-
-    if (currentStep === 4) {
-      setFormData((prev) => {
-        const nextPayment = { ...prev.payment };
-        const method = prev.paymentMethod.paymentMethod;
-
-        if (method === "zelle") {
-          nextPayment.zelleName =
-            nextPayment.zelleName || prev.sponsor.fullName || "";
-          nextPayment.zellePhone =
-            nextPayment.zellePhone || prev.sponsor.phone || "";
-        } else if (method === "check") {
-          nextPayment.checkEmail =
-            nextPayment.checkEmail || prev.sponsor.email || "";
-          nextPayment.checkAddress =
-            nextPayment.checkAddress ||
-            [
-              prev.location.address,
-              prev.location.city,
-              prev.location.state,
-              prev.location.zipCode,
-            ]
-              .filter(Boolean)
-              .join(", ") ||
-            "";
-        } else if (method === "ach") {
-          nextPayment.achContactPhone =
-            nextPayment.achContactPhone || prev.sponsor.phone || "";
-          nextPayment.achContactEmail =
-            nextPayment.achContactEmail || prev.sponsor.email || "";
-        }
-
-        return {
-          ...prev,
-          payment: nextPayment,
-        };
+    setIsUploadingImage(true);
+    setSubmitError("");
+    try {
+      const uploaded = await uploadImageToCloudinary(file);
+      updateField("image", {
+        url: String(uploaded.secure_url || ""),
+        public_id: String(uploaded.public_id || ""),
       });
-    }
-
-    if (currentStep < 5) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handlePrevStep = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+    } catch (error) {
+      console.error("Sponsor image upload failed:", error);
+      setSubmitError("Unable to upload that photo. Please try again.");
+    } finally {
+      setIsUploadingImage(false);
     }
   };
 
-  const handleSubmit = async () => {
-    if (!validateStep(currentStep)) return;
+  const validate = () => {
+    const nextErrors: Record<string, string> = {};
+    if (form.name.trim().length < 2) nextErrors.name = "Enter the sponsor's full name.";
+    if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) {
+      nextErrors.email = "Enter a valid email address.";
+    }
+    if (!form.phone.trim()) nextErrors.phone = "Enter a phone number.";
+    const amount = Number(form.amount);
+    if (!Number.isFinite(amount) || amount < 5 || amount > 100000) {
+      nextErrors.amount = "Enter an amount from $5 to $100,000.";
+    }
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSubmitError("");
+    if (!validate() || isUploadingImage) return;
 
     setIsSubmitting(true);
     try {
-      const payload = {
+      if (!requestId.current) requestId.current = crypto.randomUUID();
+      const response = await apiRequest("POST", "/sponsors/public/pledges", {
+        requestId: requestId.current,
         profile: {
-          fullName: formData.sponsor.fullName,
-          email: formData.sponsor.email,
-          phone: formData.sponsor.phone,
-          bio: formData.sponsor.bio || "",
-          country: formData.location.country || "",
-          city: formData.location.city || "",
-          state: formData.location.state || "",
-          region: formData.location.region || "",
-          zipCode: formData.location.zipCode || "",
+          fullName: form.name.trim(),
+          email: form.email.trim().toLowerCase(),
+          phone: form.phone.trim(),
+          bio: form.bio.trim(),
+          country: form.country.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+          region: form.region.trim(),
+          zipCode: form.zipCode.trim(),
         },
-        donation: formData.donation as DonationData,
-        paymentMethod: formData.paymentMethod as PaymentMethodData,
+        location: {
+          address: form.address.trim(),
+          country: form.country.trim(),
+          city: form.city.trim(),
+          state: form.state.trim(),
+          region: form.region.trim(),
+          zipCode: form.zipCode.trim(),
+        },
+        image: form.image.url ? form.image : undefined,
+        donation: {
+          amount: Number(form.amount),
+          period: form.period,
+          remindByEmail: form.remindByEmail,
+        },
+        paymentMethod: "ach",
         childId: childProfile._id,
-        source: "website",
-      };
-
-      const response = await apiRequest("POST", `/sponsors/profile/new`, payload);
-      const result = await response.json();
-
-      setSubmissionData({
-        ...formData,
-        childId: childProfile._id,
-        childName: `${childProfile.firstName} ${childProfile.secondName}`.trim(),
-        submissionId: result.sponsor?._id || `sponsor_${Date.now()}`,
-        submittedAt: new Date().toISOString(),
+        child: childProfile._id,
+        sponsor: {
+          name: form.name.trim(),
+          email: form.email.trim().toLowerCase(),
+          phone: form.phone.trim(),
+        },
       });
-
-      setShowSuccess(true);
-
-      // Reset form after 5 seconds
-      setTimeout(() => {
-        setShowSuccess(false);
-        onClose();
-        setCurrentStep(1);
-        setFormData(DEFAULT_FORM_DATA);
-      }, 5000);
+      const result = await response.json();
+      setReceipt({
+        reference: result.pledge.reference,
+        amount: result.pledge.amount,
+        currency: result.pledge.currency,
+        period: result.pledge.period,
+        instructions: result.achInstructions,
+      });
     } catch (error) {
-      console.error("Submission failed:", error);
-      alert("Failed to submit sponsorship. Please try again.");
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "Unable to submit this pledge. Please try again.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleFormDataChange = (
-    stepKey: keyof SponsorshipFormData,
-    data: any,
-  ) => {
-    setFormData((prev) => ({
-      ...prev,
-      [stepKey]: { ...prev[stepKey], ...data },
-    }));
-    // Clear errors for this step when user makes changes
-    setErrors((prev) => ({
-      ...prev,
-      [stepKey]: {},
-    }));
+  const copyReference = async () => {
+    if (!receipt) return;
+    try {
+      await navigator.clipboard.writeText(receipt.reference);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setSubmitError("Could not copy the reference. Please select and copy it.");
+    }
   };
 
-  if (showSuccess && submissionData) {
-    return (
-      <SponsorshipSuccessModal
-        isOpen={showSuccess}
-        submissionData={submissionData}
-        childProfile={childProfile}
-      />
-    );
-  }
+  const childName = `${childProfile.firstName} ${childProfile.secondName}`.trim();
 
   return (
-    <Dialog
-      open={isOpen && !showSuccess}
-      onOpenChange={(open) => {
-        if (!open && closeButtonRef.current) {
-          closeButtonRef.current = false;
-          onClose();
-        }
-      }}
-    >
-      <DialogContent
-        showCloseButton={false}
-        className="max-h-[90vh] w-full max-w-2xl bg-card overflow-y-auto p-0"
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 0.3 }}
-          className="p-6 sm:p-8"
-        >
-          {/* Header with Close Button */}
-          <div className="relative">
-            <SponsorshipFormHeader
-              currentStep={currentStep}
-              totalSteps={5}
-              childName={childProfile.firstName}
-              childImage={childProfile.image.url}
-            />
-            <button
-              onClick={() => {
-                closeButtonRef.current = true;
-                onClose();
-              }}
-              className="absolute -top-2 -right-2 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground/70 ring-offset-background transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
-              aria-label="Close"
-            >
-              <X className="h-5 w-5" />
-            </button>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto bg-card p-0">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-card/95 px-5 py-4 backdrop-blur sm:px-8">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              Child sponsorship
+            </p>
+            <h2 className="mt-1 text-xl font-bold text-foreground">
+              {receipt ? "Pledge submitted" : "Sponsor profile and pledge"}
+            </h2>
           </div>
+          <Button type="button" variant="ghost" size="icon" aria-label="Close sponsorship form" onClick={onClose}>
+            <X size={18} />
+          </Button>
+        </div>
 
-          {/* Steps */}
-          <div className="mt-8 min-h-96">
-            <AnimatePresence mode="wait">
-              {currentStep === 1 && (
-                <motion.div
-                  key="step1"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Step1SponsorBio
-                    data={formData.sponsor}
-                    onChange={(data) => handleFormDataChange("sponsor", data)}
-                    errors={errors.sponsor}
-                  />
-                </motion.div>
-              )}
+        {receipt ? (
+          <section className="space-y-6 p-5 sm:p-8" aria-live="polite">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-emerald-950">
+              <div className="flex items-center gap-3">
+                <Check className="size-5 shrink-0" />
+                <div>
+                  <h3 className="font-semibold">Your pledge is awaiting transfer verification</h3>
+                  <p className="mt-1 text-sm">The child is not reserved until staff confirm the funds arrived.</p>
+                </div>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-md border border-border p-4">
+                <p className="text-xs uppercase text-muted-foreground">Child</p>
+                <p className="mt-1 font-semibold">{childName}</p>
+              </div>
+              <div className="rounded-md border border-border p-4">
+                <p className="text-xs uppercase text-muted-foreground">Pledge</p>
+                <p className="mt-1 font-semibold">{receipt.currency} {receipt.amount} / {receipt.period}</p>
+              </div>
+              <div className="rounded-md border border-border p-4">
+                <p className="text-xs uppercase text-muted-foreground">Reference</p>
+                <div className="mt-1 flex items-center gap-2">
+                  <code className="break-all text-sm">{receipt.reference}</code>
+                  <Button type="button" variant="ghost" size="icon" onClick={copyReference} aria-label="Copy pledge reference">
+                    {copied ? <Check size={16} /> : <Copy size={16} />}
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-lg border border-border p-5">
+              <h3 className="font-semibold text-foreground">Manual ACH transfer instructions</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Start a bank transfer from your own bank. Include the pledge reference exactly as shown. Do not send banking passwords or account login details.
+              </p>
+              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
+                {Object.entries(receipt.instructions).map(([key, value]) => (
+                  <div key={key} className="min-w-0">
+                    <dt className="text-xs uppercase text-muted-foreground">{key.replace(/([A-Z])/g, " $1")}</dt>
+                    <dd className="mt-1 wrap-break-word font-medium text-foreground">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+            <Button type="button" variant="outline" onClick={onClose}>Close</Button>
+          </section>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-8 p-5 sm:p-8">
+            <section className="rounded-lg border border-border bg-muted/30 p-4 sm:p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                <img src={childProfile.image?.url || "/no-images3.png"} alt={childName} className="h-24 w-24 rounded-md object-cover" />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Child profile</p>
+                  <h3 className="mt-1 text-xl font-bold text-foreground">{childName}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {childProfile.ageGroup ? `Age ${childProfile.ageGroup}` : "Child sponsorship"}
+                    {childProfile.location ? ` · ${childProfile.location}` : ""}
+                  </p>
+                  {childProfile.background ? <p className="mt-3 max-w-2xl text-sm leading-6 text-foreground/80">{childProfile.background}</p> : null}
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                This pledge is for the child shown above. <Link href="/donate" onClick={onClose} className="font-medium text-primary underline">Return to the child list</Link> to select someone else.
+              </p>
+            </section>
 
-              {currentStep === 2 && (
-                <motion.div
-                  key="step2"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Step2Location
-                    data={formData.location}
-                    onChange={(data: any) =>
-                      handleFormDataChange("location", data)
-                    }
-                    errors={errors.location}
-                  />
-                </motion.div>
-              )}
+            <section className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Sponsor basics</h3>
+                <p className="text-sm text-muted-foreground">Use the same details the organization records for sponsor profiles.</p>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="publicSponsorName">Full name</Label>
+                  <Input className="bg-background" id="publicSponsorName" value={form.name} onChange={(event) => updateField("name", event.target.value)} aria-invalid={Boolean(errors.name)} />
+                  {errors.name ? <p className="text-sm text-destructive">{errors.name}</p> : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="publicSponsorEmail">Email</Label>
+                  <Input className="bg-background" id="publicSponsorEmail" type="email" autoComplete="email" value={form.email} onChange={(event) => updateField("email", event.target.value)} aria-invalid={Boolean(errors.email)} />
+                  {errors.email ? <p className="text-sm text-destructive">{errors.email}</p> : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="publicSponsorPhone">Phone</Label>
+                  <Input className="bg-background" id="publicSponsorPhone" type="tel" autoComplete="tel" value={form.phone} onChange={(event) => updateField("phone", event.target.value)} aria-invalid={Boolean(errors.phone)} />
+                  {errors.phone ? <p className="text-sm text-destructive">{errors.phone}</p> : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="publicSponsorImage">Profile photo (optional)</Label>
+                  <div className="flex items-center gap-3">
+                    {form.image.url ? <img src={form.image.url} alt="Sponsor profile preview" className="h-12 w-12 rounded-full object-cover" /> : null}
+                    <Input
+className="bg-background min-w-0"                       id="publicSponsorImage"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      disabled={isUploadingImage}
+                      onChange={(event) => {
+                        void handleImageUpload(event.currentTarget.files?.[0]);
+                        event.currentTarget.value = "";
+                      }}
+                       
+                    />
+                    {form.image.url ? <Button type="button" variant="ghost" size="icon" aria-label="Remove sponsor photo" onClick={() => updateField("image", { url: "", public_id: "" })}><X size={16} /></Button> : null}
+                    {isUploadingImage ? <Loader2 className="size-4 animate-spin" /> : <Upload size={16} />}
+                  </div>
+                  <p className="text-xs text-muted-foreground">JPEG, PNG, or WebP; maximum 5 MB.</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="publicSponsorBio">Bio</Label>
+                <textarea id="publicSponsorBio" maxLength={1000} value={form.bio} onChange={(event) => updateField("bio", event.target.value)} className="min-h-24 w-full rounded-md border border-border bg-background px-3 py-2 text-sm" />
+              </div>
+            </section>
 
-              {currentStep === 3 && (
-                <motion.div
-                  key="step3"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Step3Donation
-                    data={formData.donation}
-                    onChange={(data) => handleFormDataChange("donation", data)}
-                    errors={errors.donation}
-                  />
-                </motion.div>
-              )}
+            <section className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">Location</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {locationFields.map(([field, label]) => (
+                  <div className="space-y-2" key={field}>
+                    <Label htmlFor={`publicSponsor-${field}`}>{label}</Label>
+                    <Input
+className="bg-background"                       id={`publicSponsor-${field}`}
+                      autoComplete={field === "address" ? "street-address" : field === "city" ? "address-level2" : field === "state" ? "address-level1" : field === "zipCode" ? "postal-code" : "off"}
+                      value={form[field]}
+                      onChange={(event) => updateField(field, event.target.value)}
+                    />
+                  </div>
+                ))}
+              </div>
+            </section>
 
-              {currentStep === 4 && (
-                <motion.div
-                  key="step4"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Step4PaymentMethod
-                    data={formData.paymentMethod}
-                    onChange={(data) =>
-                      handleFormDataChange("paymentMethod", data)
-                    }
-                    errors={errors.paymentMethod}
-                  />
-                </motion.div>
-              )}
+            <section className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">Donation details</h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="publicSponsorAmount">Amount</Label>
+                  <Input className="bg-background" id="publicSponsorAmount" type="number" min="5" max="100000" step="1" value={form.amount} onChange={(event) => updateField("amount", event.target.value)} aria-invalid={Boolean(errors.amount)} />
+                  {errors.amount ? <p className="text-sm text-destructive">{errors.amount}</p> : null}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="publicSponsorPeriod">Period</Label>
+                  <select id="publicSponsorPeriod" value={form.period} onChange={(event) => updateField("period", event.target.value as SponsorFormValues["period"])} className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
+                    <option value="Monthly">Monthly</option>
+                    <option value="3 Months">3 Months</option>
+                    <option value="6 Months">6 Months</option>
+                    <option value="Yearly">Yearly</option>
+                  </select>
+                </div>
+              </div>
+              <label className="flex items-start gap-3 rounded-md border border-border p-3 text-sm">
+                <input className="bg-background mt-1" type="checkbox" checked={form.remindByEmail} onChange={(event) => updateField("remindByEmail", event.target.checked)}  />
+                <span>Send reminders by email</span>
+              </label>
+              <div className="space-y-2">
+                <Label htmlFor="publicPaymentMethod">Payment method</Label>
+                <select id="publicPaymentMethod" value="ach" disabled className="h-10 w-full rounded-md border border-border bg-muted px-3 text-sm text-foreground">
+                  <option value="zelle" disabled>Zelle (not available online)</option>
+                  <option value="stripe" disabled>Stripe (not available online)</option>
+                  <option value="check" disabled>Check (not available online)</option>
+                  <option value="card" disabled>Card (not available online)</option>
+                  <option value="paypal" disabled>PayPal (not available online)</option>
+                  <option value="ach">ACH (manual bank transfer)</option>
+                </select>
+                <p className="text-sm text-muted-foreground">You will initiate a USD transfer from your bank. This form does not collect bank account credentials or record a payment as received.</p>
+              </div>
+            </section>
 
-              {currentStep === 5 && (
-                <motion.div
-                  key="step5"
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Step5PaymentDetails
-                    paymentMethod={formData.paymentMethod.paymentMethod || ""}
-                    donationAmount={formData.donation.amount || 0}
-                    donationPeriod={formData.donation.period || "Monthly"}
-                    defaultName={formData.sponsor.fullName || ""}
-                    defaultEmail={formData.sponsor.email || ""}
-                    defaultPhone={formData.sponsor.phone || ""}
-                    defaultAddress={getDefaultMailingAddress()}
-                    data={formData.payment}
-                    onChange={(data) => handleFormDataChange("payment", data)}
-                    errors={errors.payment}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Navigation Buttons */}
-          <div className="mt-8 flex gap-3 border-t border-border pt-6">
-            <motion.div
-              whileHover={currentStep > 1 ? { x: -4 } : {}}
-              whileTap={currentStep > 1 ? { scale: 0.95 } : {}}
-            >
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handlePrevStep}
-                disabled={currentStep === 1}
-                className="rounded-full gap-2"
-              >
-                <ArrowLeft size={16} /> Back
+            {submitError ? <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{submitError}</p> : null}
+            <div className="flex flex-col-reverse gap-3 border-t border-border pt-5 sm:flex-row sm:justify-between">
+              <Button type="button" variant="outline" onClick={onClose}><ArrowLeft size={16} className="mr-2" /> Close form</Button>
+              <Button type="submit" disabled={isSubmitting || isUploadingImage}>
+                {isSubmitting ? <Loader2 className="mr-2 size-4 animate-spin" /> : null}
+                {isSubmitting ? "Submitting pledge..." : "Submit pledge"}
               </Button>
-            </motion.div>
-
-            <div className="flex-1" />
-
-            <motion.div
-              whileHover={currentStep < 5 ? { scale: 1.02 } : {}}
-              whileTap={currentStep < 5 ? { scale: 0.98 } : {}}
-            >
-              <Button
-                type="button"
-                onClick={currentStep < 5 ? handleNextStep : handleSubmit}
-                disabled={isSubmitting}
-                className="rounded-full bg-primary px-8 font-semibold text-white hover:bg-green-700"
-              >
-                {isSubmitting
-                  ? "Processing..."
-                  : currentStep === 5
-                    ? "Complete Sponsorship"
-                    : "Next"}
-              </Button>
-            </motion.div>
-          </div>
-        </motion.div>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

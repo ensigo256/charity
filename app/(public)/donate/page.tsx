@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import { useMemo, useState, useEffect } from "react";
-import Link from "next/link";
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
 import { Card } from "@/components/ui/card";
@@ -14,59 +13,109 @@ import {
 } from "@/components/motion/animated-elements";
 import SponsorshipCard from "@/components/public/sponsorship-card";
 import { useQuery } from "@tanstack/react-query";
-import {
-  CHILDREN_PROFILES_QUERY_KEY,
-  type SponsorshipProfile,
-} from "@/lib/child-profile";
+import { type SponsorshipProfile } from "@/lib/child-profile";
 
 const ageGroups = ["All", "0-5", "6-12", "13-18"] as const;
 const familyStatuses = ["All", "Total Orphans", "Single Parent"] as const;
+const genderOptions = ["All", "Male", "Female"] as const;
 const PROFILES_PER_PAGE = 6;
 
+function matchesAgeRange(profile: SponsorshipProfile, selectedAgeGroup: (typeof ageGroups)[number]) {
+  if (selectedAgeGroup === "All") return true;
+
+  const numericAge = typeof profile.age === "number" ? profile.age : Number.NaN;
+  if (!Number.isFinite(numericAge)) {
+    const rawAgeGroup = typeof profile.ageGroup === "string" ? profile.ageGroup.trim() : "";
+    return rawAgeGroup === selectedAgeGroup;
+  }
+
+  switch (selectedAgeGroup) {
+    case "0-5":
+      return numericAge >= 0 && numericAge <= 5;
+    case "6-12":
+      return numericAge >= 6 && numericAge <= 12;
+    case "13-18":
+      return numericAge >= 13 && numericAge <= 18;
+    default:
+      return true;
+  }
+}
+
 export default function SponsorBrowsePage() {
-  const { data: Profiles, isLoading } = useQuery<SponsorshipProfile[]>({
-    queryKey: CHILDREN_PROFILES_QUERY_KEY,
+  const { data: Profiles, isLoading, error } = useQuery<SponsorshipProfile[]>({
+    queryKey: ["children", "public", "profiles"],
+    refetchInterval: 10_000,
   });
+
+  const profiles = Profiles ?? [];
 
   const [selectedAgeGroup, setSelectedAgeGroup] =
     useState<(typeof ageGroups)[number]>("All");
   const [selectedFamilyStatus, setSelectedFamilyStatus] =
     useState<(typeof familyStatuses)[number]>("All");
-
-  const [profiles, setProfiles] = useState<SponsorshipProfile[]>([]);
+  const [selectedGender, setSelectedGender] =
+    useState<(typeof genderOptions)[number]>("All");
+  const [selectedLocation, setSelectedLocation] = useState("All");
+  const [selectedEducationLevel, setSelectedEducationLevel] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const uniqueLocations = useMemo(() => {
+    return [
+      "All",
+      ...Array.from(
+        new Set(
+          profiles
+            .map((profile) => profile.location)
+            .filter((location): location is string => Boolean(location && location.trim())),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    ];
+  }, [profiles]);
+
+  const uniqueEducationLevels = useMemo(() => {
+    return [
+      "All",
+      ...Array.from(
+        new Set(
+          profiles
+            .map((profile) =>
+              profile.education?.currentLevel || profile.education?.educationStage || "",
+            )
+            .filter((level): level is string => Boolean(level && level.trim())),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    ];
+  }, [profiles]);
+
   const filteredProfiles = useMemo(() => {
-    return (
-      profiles?.filter((profile) => {
-        const ageMatch =
-          selectedAgeGroup === "All" || profile?.ageGroup === selectedAgeGroup;
-        const statusMatch =
-          selectedFamilyStatus === "All" ||
-          profile?.familyStatus === selectedFamilyStatus;
-        return ageMatch && statusMatch;
-      }) ?? []
-    );
-  }, [profiles, selectedAgeGroup, selectedFamilyStatus]);
+    return profiles.filter((profile) => {
+      const ageMatch = matchesAgeRange(profile, selectedAgeGroup);
+      const statusMatch =
+        selectedFamilyStatus === "All" ||
+        profile.familyStatus === selectedFamilyStatus;
+      const genderMatch =
+        selectedGender === "All" || profile.gender === selectedGender;
+      const locationMatch =
+        selectedLocation === "All" || profile.location === selectedLocation;
+      const educationMatch =
+        selectedEducationLevel === "All" ||
+        (profile.education?.currentLevel || profile.education?.educationStage || "") ===
+          selectedEducationLevel;
 
-  const totalOrphans = profiles?.filter(
-    (profile) => profile?.familyStatus === "Total Orphans",
-  ).length;
-  const totalSingleParents = profiles?.filter(
-    (profile) => profile?.familyStatus === "Single Parent",
-  ).length;
+      return ageMatch && statusMatch && genderMatch && locationMatch && educationMatch;
+    });
+  }, [profiles, selectedAgeGroup, selectedFamilyStatus, selectedGender, selectedLocation, selectedEducationLevel]);
 
-  useEffect(() => {
-    if (Profiles) {
-      setProfiles(
-        Profiles.filter((profile) => profile.sponsorshipStatus !== "Sponsored"),
-      );
-    }
-  }, [Profiles]);
+  const totalOrphans = profiles.filter(
+    (profile) => profile.familyStatus === "Total Orphans",
+  ).length;
+  const totalSingleParents = profiles.filter(
+    (profile) => profile.familyStatus === "Single Parent",
+  ).length;
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedAgeGroup, selectedFamilyStatus]);
+  }, [selectedAgeGroup, selectedFamilyStatus, selectedGender, selectedLocation, selectedEducationLevel]);
 
   const totalPages = Math.max(
     1,
@@ -174,7 +223,7 @@ export default function SponsorBrowsePage() {
                     Filter profiles
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    Refine by age and orphan status.
+                    Refine by age, care situation, gender, location, and education.
                   </p>
                 </div>
               </div>
@@ -224,11 +273,70 @@ export default function SponsorBrowsePage() {
                   </div>
                 </div>
 
+                <div>
+                  <p className="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                    Gender
+                  </p>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {genderOptions.map((gender) => (
+                      <button
+                        key={gender}
+                        type="button"
+                        onClick={() => setSelectedGender(gender)}
+                        className={`rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                          selectedGender === gender
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-background text-foreground hover:border-primary"
+                        }`}
+                      >
+                        {gender}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-3 block text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                    Location
+                  </label>
+                  <select
+                    value={selectedLocation}
+                    onChange={(event) => setSelectedLocation(event.target.value)}
+                    className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
+                  >
+                    {uniqueLocations.map((location) => (
+                      <option key={location} value={location}>
+                        {location}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-3 block text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                    Education Level
+                  </label>
+                  <select
+                    value={selectedEducationLevel}
+                    onChange={(event) => setSelectedEducationLevel(event.target.value)}
+                    className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary"
+                  >
+                    {uniqueEducationLevels.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <Button
                   type="button"
                   onClick={() => {
                     setSelectedAgeGroup("All");
                     setSelectedFamilyStatus("All");
+                    setSelectedGender("All");
+                    setSelectedLocation("All");
+                    setSelectedEducationLevel("All");
                   }}
                   className="w-full rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-800"
                 >
@@ -319,6 +427,15 @@ export default function SponsorBrowsePage() {
                     </Card>
                   </AnimatedElement>
                 ))
+              ) : error ? (
+                <Card className="rounded-4xl border border-border bg-card p-10 text-center">
+                  <p className="text-lg font-semibold text-foreground">
+                    Profiles could not be loaded.
+                  </p>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    Please try again shortly.
+                  </p>
+                </Card>
               ) : filteredProfiles.length > 0 ? (
                 paginatedProfiles.map((profile) => (
                   <AnimatedElement key={profile?._id} variant="scaleIn">
