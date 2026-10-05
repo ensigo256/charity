@@ -146,12 +146,12 @@ export default function SponsorBrowsePage() {
                 <Sparkles size={18} /> Child Sponsorship
               </div>
               <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-                Meet the children who need your support
+                Sponsor a child in Uganda and change a life today
               </h1>
               <p className="max-w-2xl text-lg text-white/85">
-                Browse profiles of young learners and families who are waiting
-                for sponsorship. Filter by age, family situation, and click
-                through to learn more about each child’s story.
+                Browse verified child sponsorship profiles and give securely to
+                support education, nutrition, care, and long-term hope for
+                children and families who need it most.
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-lg backdrop-blur-sm">
@@ -208,6 +208,60 @@ export default function SponsorBrowsePage() {
                 </li>
               </ul>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-10 text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              Why supporters choose us
+            </p>
+            <h2 className="mt-3 text-3xl font-bold text-foreground">
+              Direct support, transparent impact, and lasting hope
+            </h2>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <div className="mb-4 inline-flex rounded-full bg-green-100 p-3 text-green-700">
+                <Heart size={20} />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground">
+                Child-first giving
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Your support goes toward meeting urgent needs such as education,
+                meals, healthcare, and the stability children need to thrive.
+              </p>
+            </Card>
+
+            <Card className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <div className="mb-4 inline-flex rounded-full bg-amber-100 p-3 text-amber-700">
+                <Sparkles size={20} />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground">
+                Transparent impact
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                We focus on clear communication, authentic stories, and real
+                community care so supporters can see the difference they make.
+              </p>
+            </Card>
+
+            <Card className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <div className="mb-4 inline-flex rounded-full bg-blue-100 p-3 text-blue-700">
+                <Filter size={20} />
+              </div>
+              <h3 className="text-xl font-semibold text-foreground">
+                Secure and simple giving
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Support a child with a trusted, easy donation process built for
+                compassion and clarity from first click to final confirmation.
+              </p>
+            </Card>
           </div>
         </div>
       </section>

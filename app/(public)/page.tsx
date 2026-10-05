@@ -42,6 +42,9 @@ import "@splidejs/react-splide/css";
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/query-client";
+import { OrganizationSchema } from "@/components/seo/organization-schema";
+import { FAQSchema } from "@/components/seo/faq-schema";
+
 export default function Home() {
   const [amount, setAmount] = useState("10");
   const [name, setName] = useState("");
@@ -151,6 +154,8 @@ export default function Home() {
   ];
   return (
     <main className="min-h-screen flex flex-col bg-background">
+      <OrganizationSchema />
+      <FAQSchema />
       <Navbar />
 
       <Hero />
@@ -178,6 +183,73 @@ export default function Home() {
       <ProgramsSection />
 
       <AboutPreview />
+
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-background">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-10 text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+              Why families and donors trust us
+            </p>
+            <h2 className="mt-3 text-3xl font-bold text-foreground">
+              Compassionate support for children, families, and communities
+            </h2>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-4">
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
+                Direct care
+              </p>
+              <h3 className="mt-4 text-xl font-semibold text-foreground">
+                Education & meals
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                We help meet everyday essentials so children can learn, grow,
+                and feel safe.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
+                Community
+              </p>
+              <h3 className="mt-4 text-xl font-semibold text-foreground">
+                Family support
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                We stand with vulnerable households through practical care and
+                meaningful community outreach.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
+                Transparent
+              </p>
+              <h3 className="mt-4 text-xl font-semibold text-foreground">
+                Real impact
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Our work is rooted in accountability, dignity, and long-term
+                support for those we serve.
+              </p>
+            </div>
+
+            <div className="rounded-3xl border border-border bg-card p-6 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary">
+                Secure giving
+              </p>
+              <h3 className="mt-4 text-xl font-semibold text-foreground">
+                Simple donation
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Support a child or give to a program with a clear, safe, and easy
+                giving experience.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <ImpactMetrics />
 

@@ -8,10 +8,12 @@ import { ValuesSection } from "./sections/values";
 import { TeamSection } from "./sections/team";
 import { ImpactSection } from "./sections/impact";
 import { TestimonialsSection } from "./sections/testimonials";
+import { OrganizationSchema } from "@/components/seo/organization-schema";
 
 export default function AboutPage() {
   return (
     <main className="min-h-screen bg-white">
+      <OrganizationSchema />
       <Navbar />
 
       {/* Main Content */}

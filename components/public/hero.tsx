@@ -76,7 +76,7 @@ export function Hero() {
                   style={{ fontFamily: "Quicksand" }}
                   className="text-3xl sm:text-4xl md:text-6xl lg:text-6xl xl:text-7xl font-bold text-white text-balance leading-tight drop-shadow-lg "
                 >
-                  {heroContent?.content.split(" - ")[0] || "Planting Seeds of Love & Hope"}
+                  {heroContent?.content.split(" - ")[0] || "Seeds of Love | Planting Hope & Opportunity"}
                 </h1>
               </AnimatedElement>
 

@@ -30,6 +30,7 @@ interface SponsorFormValues {
   bio: string;
   amount: string;
   period: "Monthly" | "3 Months" | "6 Months" | "Yearly";
+  paymentMethod: "ach" | "stripe";
   remindByEmail: boolean;
   image: { url: string; public_id: string };
 }
@@ -55,6 +56,7 @@ const initialForm: SponsorFormValues = {
   bio: "",
   amount: "50",
   period: "Monthly",
+  paymentMethod: "stripe",
   remindByEmail: true,
   image: { url: "", public_id: "" },
 };
@@ -146,7 +148,8 @@ export default function SponsorshipFormModal({
     setIsSubmitting(true);
     try {
       if (!requestId.current) requestId.current = crypto.randomUUID();
-      const response = await apiRequest("POST", "/sponsors/public/pledges", {
+
+      const payload = {
         requestId: requestId.current,
         profile: {
           fullName: form.name.trim(),
@@ -173,7 +176,7 @@ export default function SponsorshipFormModal({
           period: form.period,
           remindByEmail: form.remindByEmail,
         },
-        paymentMethod: "ach",
+        paymentMethod: form.paymentMethod,
         childId: childProfile._id,
         child: childProfile._id,
         sponsor: {
@@ -181,8 +184,21 @@ export default function SponsorshipFormModal({
           email: form.email.trim().toLowerCase(),
           phone: form.phone.trim(),
         },
-      });
+      };
+
+      const endpoint = form.paymentMethod === "stripe" ? "/sponsors/stripe/create-session" : "/sponsors/public/pledges";
+      const response = await apiRequest("POST", endpoint, payload);
       const result = await response.json();
+
+      if (form.paymentMethod === "stripe") {
+        if (!result.url) {
+          throw new Error("Stripe checkout session was not returned by the server.");
+        }
+
+        window.location.href = result.url;
+        return;
+      }
+
       setReceipt({
         reference: result.pledge.reference,
         amount: result.pledge.amount,
@@ -386,15 +402,22 @@ className="bg-background"                       id={`publicSponsor-${field}`}
               </label>
               <div className="space-y-2">
                 <Label htmlFor="publicPaymentMethod">Payment method</Label>
-                <select id="publicPaymentMethod" value="ach" disabled className="h-10 w-full rounded-md border border-border bg-muted px-3 text-sm text-foreground">
-                  <option value="zelle" disabled>Zelle (not available online)</option>
-                  <option value="stripe" disabled>Stripe (not available online)</option>
-                  <option value="check" disabled>Check (not available online)</option>
-                  <option value="card" disabled>Card (not available online)</option>
-                  <option value="paypal" disabled>PayPal (not available online)</option>
+                <select
+                  id="publicPaymentMethod"
+                  value={form.paymentMethod}
+                  onChange={(event) =>
+                    updateField("paymentMethod", event.target.value as "ach" | "stripe")
+                  }
+                  className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground"
+                >
+                  <option value="stripe">Stripe (secure online checkout)</option>
                   <option value="ach">ACH (manual bank transfer)</option>
                 </select>
-                <p className="text-sm text-muted-foreground">You will initiate a USD transfer from your bank. This form does not collect bank account credentials or record a payment as received.</p>
+                <p className="text-sm text-muted-foreground">
+                  {form.paymentMethod === "stripe"
+                    ? "Stripe will redirect you to a secure checkout page to complete the donation." 
+                    : "You will initiate a USD transfer from your bank. This form does not collect bank account credentials or record a payment as received."}
+                </p>
               </div>
             </section>
 
