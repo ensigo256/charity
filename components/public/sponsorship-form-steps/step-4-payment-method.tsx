@@ -37,7 +37,6 @@ const paymentMethods = [
   { icon: "/stripe.png", value: "stripe", label: "Stripe" },
   { icon: "/zelle.png", value: "zelle", label: "Zelle" },
   { icon: "/check.png", value: "check", label: "Check" },
-  { icon: "/ach.png", value: "ach", label: "ACH" },
 ];
 
 export default function Step4PaymentMethod({

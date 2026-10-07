@@ -108,7 +108,7 @@ export const DEFAULT_FORM_DATA: SponsorshipFormData = {
   sponsor: { fullName: "", email: "", phone: "", bio: "" },
   location: { address: "", country: "", city: "", state: "", region: "", zipCode: "" },
   donation: { amount: 50, period: "Monthly", remindByEmail: false },
-  paymentMethod: { paymentMethod: "ach" },
+  paymentMethod: { paymentMethod: "stripe" },
   payment: {
     cardName: "",
     cardNumber: "",

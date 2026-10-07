@@ -237,23 +237,12 @@ export default function Step5PaymentDetails({
               Complete Payment with Stripe
             </h3>
             <p className="text-sm text-muted-foreground">
-              You'll be redirected to Stripe's secure payment page to complete
-              your donation.
+              Stripe is handled through the child sponsorship pledge flow so
+              your payment can be matched to the child you selected.
             </p>
-            <Button
-              onClick={() =>
-                window.open(
-                  "https://donate.stripe.com/bIY041g5Z8RH1BSeUU",
-                  "_blank",
-                )
-              }
-              className="w-full"
-            >
-              Proceed to Stripe
-            </Button>
             <p className="text-xs text-muted-foreground mt-3">
-              After completing the Stripe payment, return here and click the
-              Complete Sponsorship button to finish the process.
+              This older form cannot create a pending sponsorship or verify a
+              payment. Please use the child sponsorship form instead.
             </p>
           </div>
         </motion.div>
@@ -488,58 +477,11 @@ export default function Step5PaymentDetails({
       >
         <motion.div variants={itemVariants}>
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">ACH Payment</h3>
+            <h3 className="text-lg font-semibold">ACH is not available in this form</h3>
             <p className="text-sm text-muted-foreground">
-              We'll collect your contact details, then securely send ACH
-              transfer instructions to your email or phone.
+              This legacy form does not submit ACH pledges or send transfer instructions. Use the child sponsorship form to submit a manual bank transfer pledge and receive instructions by email.
             </p>
           </div>
-        </motion.div>
-
-        <motion.div variants={itemVariants}>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Contact Phone *
-          </label>
-          <Input
-            type="tel"
-            placeholder="(555) 123-4567"
-            value={data.achContactPhone || defaultPhoneValue}
-            onChange={(e) => handleChange("achContactPhone", e.target.value)}
-            className={`rounded-2xl ${errors.achContactPhone ? "border-destructive" : ""}`}
-          />
-          {errors.achContactPhone && (
-            <p className="text-xs text-destructive mt-1">
-              {errors.achContactPhone}
-            </p>
-          )}
-        </motion.div>
-
-        <motion.div variants={itemVariants}>
-          <label className="block text-sm font-semibold text-foreground mb-2">
-            Contact Email (optional)
-          </label>
-          <Input
-            type="email"
-            placeholder="your.email@example.com"
-            value={data.achContactEmail || defaultEmailValue}
-            onChange={(e) => handleChange("achContactEmail", e.target.value)}
-            className={`rounded-2xl ${errors.achContactEmail ? "border-destructive" : ""}`}
-          />
-          {errors.achContactEmail && (
-            <p className="text-xs text-destructive mt-1">
-              {errors.achContactEmail}
-            </p>
-          )}
-        </motion.div>
-
-        <motion.div
-          variants={itemVariants}
-          className="bg-background rounded-2xl border border-border p-4"
-        >
-          <p className="text-xs text-muted-foreground">
-            ACH is an electronic bank transfer network. We'll contact you with
-            secure transfer instructions, typically within one business day.
-          </p>
         </motion.div>
       </motion.div>
     );

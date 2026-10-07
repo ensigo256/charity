@@ -46,10 +46,6 @@ import { OrganizationSchema } from "@/components/seo/organization-schema";
 import { FAQSchema } from "@/components/seo/faq-schema";
 
 export default function Home() {
-  const [amount, setAmount] = useState("10");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [companyName, setCompanyName] = useState("");
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSubmitting, setNewsletterSubmitting] = useState(false);
   const [newsletterStatus, setNewsletterStatus] = useState<"idle" | "success" | "error">("idle");
@@ -66,6 +62,16 @@ export default function Home() {
   });
   const { data: eventsData, isLoading: eventsLoading } = useQuery<any[]>({
     queryKey: ["events", "all"],
+  });
+  const { data: stripePaymentSettings, isLoading: stripePaymentSettingsLoading } = useQuery<{
+    configured: boolean;
+    paymentUrl: string;
+  }>({
+    queryKey: ["stripe-payment-link", "public"],
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/sponsors/settings/stripe-payment-link/public");
+      return response.json();
+    },
   });
 
   useEffect(() => {
@@ -140,12 +146,6 @@ export default function Home() {
     }
   };
 
-  const quickdonations = [
-    { amount: "10", label: "Provide a Meal" },
-    { amount: "25", label: "Support a Child for a Week" },
-    { amount: "50", label: "Fund Educational Materials" },
-    { amount: "100", label: "Sponsor a Community Program" },
-  ];
   const socialMediaLinks = [
     { icon: Facebook, url: "https://www.facebook.com/SeedsOfLove" },
     { icon: "", url: "https://twitter.com/SeedsOfLove" },
@@ -506,85 +506,46 @@ export default function Home() {
                 Make A Donation
               </h1>
 
-              <form className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Enter your Names"
-                    className="flex-1 bg-card border-0"
-                  />
-                  <Input
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your Email Address"
-                    className="flex-1 bg-card border-0"
-                  />
-                </div>
-
-                <Input
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Company name (Optional)"
-                  className="bg-card border-0"
-                />
-
-                <Input
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Amount Donating"
-                  className="bg-card border-0"
-                />
-
-                {/* QUICK DONATIONS */}
-                <div className="flex flex-wrap gap-2">
-                  {quickdonations.map((donation, i) => (
-                    <Button
-                      key={i}
-                      variant="outline"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setAmount(donation.amount);
-                      }}
-                      className={`border-green-800 ${amount === donation.amount ? "bg-green-800 text-white" : "text-green-800"}  hover:bg-green-800 hover:text-white`}
-                    >
-                      $ {donation.amount}
-                    </Button>
-                  ))}
-                </div>
-
-                {/* CHECKBOXES */}
-                <div className="flex items-start gap-2">
-                  <Input type="checkbox" className="w-4 h-4 mt-1" />
-                  <p className="text-xs text-muted-foreground">
-                    I want to receive updates about the impact of my donation
-                  </p>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <Input type="checkbox" className="w-4 h-4 mt-1" />
-                  <p className="text-xs text-muted-foreground">
-                    I agree to the terms and conditions
-                  </p>
-                </div>
-
+              <div className="space-y-4">
+                <p className="text-sm leading-6 text-muted-foreground">
+                  Choose your donation amount and enter your payment details on Stripe&apos;s secure checkout.
+                </p>
                 <Button
                   type="button"
-                  disabled
-                  className="w-full cursor-not-allowed bg-primary/60 text-white font-bold py-4 text-lg rounded-lg opacity-80"
+                  disabled={stripePaymentSettingsLoading || !stripePaymentSettings?.configured}
+                  onClick={() => {
+                    const value = stripePaymentSettings?.paymentUrl;
+                    if (!value) return;
+                    try {
+                      const paymentUrl = new URL(value);
+                      if (
+                        paymentUrl.protocol !== "https:" ||
+                        !["buy.stripe.com", "donate.stripe.com"].includes(paymentUrl.hostname.toLowerCase())
+                      ) return;
+                      paymentUrl.searchParams.set("client_reference_id", `DONATION-${crypto.randomUUID()}`);
+                      window.location.assign(paymentUrl.toString());
+                    } catch {
+                      return;
+                    }
+                  }}
+                  className="w-full bg-primary text-white font-bold py-4 text-lg rounded-lg"
                 >
-                  Donate Now
+                  {stripePaymentSettingsLoading
+                    ? "Loading donation checkout..."
+                    : stripePaymentSettings?.configured
+                      ? "Donate Now"
+                      : "Donation checkout unavailable"}
                 </Button>
-
-                <p className="text-xs text-muted-foreground leading-5">
-                  We are unable to process payments in this section at the moment.
-                  Please use the{" "}
+                {!stripePaymentSettingsLoading && !stripePaymentSettings?.configured ? (
+                  <p className="text-xs text-muted-foreground leading-5">
+                    Online donations are temporarily unavailable. You can visit the{" "}
                   <Link href="/donate" className="font-semibold text-primary underline underline-offset-2">
                     donation page
                   </Link>{" "}
-                  to complete your contribution.
-                </p>
-              </form>
+                    to explore child sponsorship.
+                  </p>
+                ) : null}
+              </div>
             </div>
           </div>
         </section>
@@ -620,7 +581,7 @@ export default function Home() {
                     {events.map((event: any, index: number) => (
                       <ScrollStackItem
                         key={event._id || index}
-                        className="bg-white flex rounded-lg shadow-md p-4"
+                        itemClassName="bg-white flex rounded-lg shadow-md p-4"
                       >
                         <div className="flex items-center w-full gap-4 h-full">
                           {/* Date/Icon Section */}

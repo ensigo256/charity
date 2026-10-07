@@ -40,7 +40,7 @@ interface PledgeReceipt {
   amount: number;
   currency: string;
   period: string;
-  instructions: Record<string, string>;
+  emailDelivery: { status: string; attempts: number };
 }
 
 const initialForm: SponsorFormValues = {
@@ -186,16 +186,25 @@ export default function SponsorshipFormModal({
         },
       };
 
-      const endpoint = form.paymentMethod === "stripe" ? "/sponsors/stripe/create-session" : "/sponsors/public/pledges";
+      const endpoint = form.paymentMethod === "stripe"
+        ? "/sponsors/stripe/payment-link-pledges"
+        : "/sponsors/public/pledges";
       const response = await apiRequest("POST", endpoint, payload);
       const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Unable to submit this pledge.");
+      }
 
       if (form.paymentMethod === "stripe") {
-        if (!result.url) {
-          throw new Error("Stripe checkout session was not returned by the server.");
+        if (!result.paymentUrl) {
+          throw new Error("The Stripe Payment Link was not returned by the server.");
         }
 
-        window.location.href = result.url;
+        const paymentUrl = new URL(result.paymentUrl);
+        if (paymentUrl.protocol !== "https:") {
+          throw new Error("The Stripe Payment Link is not secure.");
+        }
+        window.location.assign(paymentUrl.toString());
         return;
       }
 
@@ -204,7 +213,7 @@ export default function SponsorshipFormModal({
         amount: result.pledge.amount,
         currency: result.pledge.currency,
         period: result.pledge.period,
-        instructions: result.achInstructions,
+        emailDelivery: result.emailDelivery || { status: "unknown", attempts: 0 },
       });
     } catch (error) {
       setSubmitError(
@@ -278,18 +287,14 @@ export default function SponsorshipFormModal({
               </div>
             </div>
             <div className="rounded-lg border border-border p-5">
-              <h3 className="font-semibold text-foreground">Manual ACH transfer instructions</h3>
+              <h3 className="font-semibold text-foreground">Transfer instructions</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Start a bank transfer from your own bank. Include the pledge reference exactly as shown. Do not send banking passwords or account login details.
+                {receipt.emailDelivery.status === "sent"
+                  ? `Transfer steps were emailed to ${form.email}. Check your inbox and spam folder. Use the pledge reference above when you initiate the transfer.`
+                  : receipt.emailDelivery.status === "failed"
+                    ? "Your pledge was recorded, but the instruction email could not be sent. Please contact the organization and provide the pledge reference above before making a transfer."
+                    : "Your pledge was recorded, but we could not confirm the instruction email status. Contact the organization and provide the pledge reference above before making a transfer."}
               </p>
-              <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-                {Object.entries(receipt.instructions).map(([key, value]) => (
-                  <div key={key} className="min-w-0">
-                    <dt className="text-xs uppercase text-muted-foreground">{key.replace(/([A-Z])/g, " $1")}</dt>
-                    <dd className="mt-1 wrap-break-word font-medium text-foreground">{value}</dd>
-                  </div>
-                ))}
-              </dl>
             </div>
             <Button type="button" variant="outline" onClick={onClose}>Close</Button>
           </section>
