@@ -1,11 +1,27 @@
 "use client";
 
 import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { QuoteIcon } from "lucide-react";
-import { TESTIMONIALS } from "../constants";
+
+interface PublicReview {
+  _id: string;
+  name: string;
+  role: string;
+  review: string;
+  photo?: { url?: string };
+}
 
 export function TestimonialsSection() {
+  const { data: reviews, isLoading, isError } = useQuery<PublicReview[]>({
+    queryKey: ["reviews", "public"],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+  });
+
+  if (isLoading || isError || !reviews?.length) return null;
+
   return (
     <section className="py-16 md:py-24 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -21,9 +37,9 @@ export function TestimonialsSection() {
 
         {/* Testimonials Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {TESTIMONIALS.map((testimonial) => (
+          {reviews.map((testimonial) => (
             <Card
-              key={testimonial.id}
+              key={testimonial._id}
               className="testimonial-card about-card p-8 bg-white border-l-4 border-blue-500 hover:shadow-lg"
             >
               {/* Quote Icon */}
@@ -31,14 +47,14 @@ export function TestimonialsSection() {
 
               {/* Quote */}
               <p className="text-lg text-gray-700 italic mb-6">
-                "{testimonial.quote}"
+                "{testimonial.review}"
               </p>
 
               {/* Author */}
               <div className="flex items-center gap-4">
                 <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0">
                   <Image
-                    src={testimonial.image}
+                    src={testimonial.photo?.url || "/user.avif"}
                     alt={testimonial.name}
                     fill
                     className="object-cover image-fade-in"

@@ -26,6 +26,8 @@ import {
   MapPin,
   PhoneCall,
   Send,
+  Twitter,
+  
 } from "lucide-react";
 import Link from "next/link";
 import ScrollStack, { ScrollStackItem } from "@/lib/scrollStackJs";
@@ -44,6 +46,9 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/query-client";
 import { OrganizationSchema } from "@/components/seo/organization-schema";
 import { FAQSchema } from "@/components/seo/faq-schema";
+import { TikTokIcon } from "@/components/shared/tiktok-icon";
+
+const TIKTOK_URL = "https://www.tiktok.com/@ensigooflove256";
 
 export default function Home() {
   const [newsletterEmail, setNewsletterEmail] = useState("");
@@ -147,10 +152,13 @@ export default function Home() {
   };
 
   const socialMediaLinks = [
-    { icon: Facebook, url: "https://www.facebook.com/SeedsOfLove" },
-    { icon: "", url: "https://twitter.com/SeedsOfLove" },
-    { icon: Instagram, url: "https://www.instagram.com/SeedsOfLove" },
-    { icon: Linkedin, url: "https://www.linkedin.com/company/SeedsOfLove" },
+    { icon: Facebook, url: "https://www.facebook.com/profile.php?id=61590070790632&sk=about" },
+    { icon: Twitter, url: "https://x.com/Ensigo_ya_Love" },
+    { icon: TikTokIcon, url: TIKTOK_URL },
+    // { icon: Instagram, url: "https://www.instagram.com/SeedsOfLove" },
+    // { icon: tiktok, url: "https://www.tiktok.com/@seeds oflove" },
+
+    // { icon: Linkedin, url: "https://www.linkedin.com/company/SeedsOfLove" },
   ];
   return (
     <main className="min-h-screen flex flex-col bg-background">
@@ -839,6 +847,8 @@ export default function Home() {
                     key={i}
                     href={social.url}
                     target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit our ${social.url === TIKTOK_URL ? "TikTok" : "social media"} profile`}
                     className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-primary text-white transition-colors hover:bg-green-800 hover:text-white"
                   >
                     {social.icon ? (

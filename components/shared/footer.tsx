@@ -1,7 +1,10 @@
 "use client";
 
-import { ArrowUp, Mail, MapPin, PhoneCall } from "lucide-react";
+import { ArrowUp, Facebook, Mail, MapPin, PhoneCall, Twitter } from "lucide-react";
 import Link from "next/link";
+import { TikTokIcon } from "@/components/shared/tiktok-icon";
+
+const TIKTOK_URL = "https://www.tiktok.com/@ensigooflove256";
 
 export function Footer() {
   return (
@@ -128,19 +131,35 @@ export function Footer() {
             </h4>
             <div style={{ fontFamily: "Quicksand" }} className="flex gap-4">
               <a
-                href="#"
+                href="https://www.facebook.com/profile.php?id=61590070790632&sk=about"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Visit our Facebook page"
                 className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                <span className="text-lg">f</span>
+                <Facebook size={18} />
+              </a>
+              <a
+                href="https://x.com/Ensigo_ya_Love"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Visit our X profile"
+                className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <Twitter size={18} />
+              </a>
+              <a
+                href={TIKTOK_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Visit our TikTok profile"
+                className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                <TikTokIcon />
               </a>
               <a
                 href="#"
-                className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
-              >
-                <span className="text-lg">𝕏</span>
-              </a>
-              <a
-                href="#"
+                aria-label="Visit our LinkedIn page"
                 className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
               >
                 <span className="text-lg">in</span>

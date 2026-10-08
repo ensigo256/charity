@@ -6,42 +6,24 @@ import {
 } from "@/components/motion/animated-elements";
 import { Card } from "@/components/ui/card";
 import { Quote } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 interface Testimonial {
-  id: string;
+  _id: string;
   name: string;
   role: string;
-  content: string;
-  image: string;
+  review: string;
+  photo?: { url?: string };
 }
 
 export function Testimonials() {
-  const testimonials: Testimonial[] = [
-    {
-      id: "1",
-      name: "Sarah Johnson",
-      role: "Community Leader",
-      content:
-        "Seeds of Love transformed our community. The education programs have given our children hope for a better future. We've seen graduation rates increase by 40% since they started working with us.",
-      image: "/user.avif",
-    },
-    {
-      id: "2",
-      name: "Michael Chen",
-      role: "Parent & Farmer",
-      content:
-        "The nutrition program saved my family. My children were malnourished, but now they're healthy and thriving. The sustainable farming training has also improved our food security.",
-      image: "/user.avif",
-    },
-    {
-      id: "3",
-      name: "Grace Nakato",
-      role: "Teacher",
-      content:
-        "Working with Seeds of Love has been incredible. Their teacher training programs have equipped us with modern teaching methods. Our students are more engaged and achieving better results.",
-      image: "/user.avif",
-    },
-  ];
+  const { data: testimonials, isLoading, isError } = useQuery<Testimonial[]>({
+    queryKey: ["reviews", "public"],
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+  });
+
+  if (isLoading || isError || !testimonials?.length) return null;
 
   return (
     <AnimatedElement variant="fadeInUp">
@@ -67,7 +49,7 @@ export function Testimonials() {
             <div className="grid md:grid-cols-3 gap-6">
               {testimonials.map((testimonial, index) => (
                 <AnimatedElement
-                  key={testimonial.id}
+                  key={testimonial._id}
                   variant="scaleIn"
                   delay={index * 0.1}
                 >
@@ -83,14 +65,14 @@ export function Testimonials() {
                         style={{ fontFamily: "Quicksand" }}
                         className="text-muted-foreground mb-6 flex-1 leading-relaxed"
                       >
-                        "{testimonial.content}"
+                        "{testimonial.review}"
                       </p>
 
                       {/* Author */}
                       <div className="flex items-center">
                         <div className="w-12 h-12 rounded-full overflow-hidden mr-4">
                           <img
-                            src={testimonial.image}
+                            src={testimonial.photo?.url || "/user.avif"}
                             alt={testimonial.name}
                             className="w-full h-full object-cover"
                           />
