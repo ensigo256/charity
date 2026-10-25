@@ -3,7 +3,8 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   metadataBase: new URL("https://ensigoflove.org"),
   title: {
-    default: "Seeds of Love | Ensigo of Love | Child Sponsorship & Community Support",
+    default:
+      "Seeds of Love | Ensigo of Love | Child Sponsorship & Community Support",
     template: "%s | Seeds of Love | Ensigo of Love",
   },
   description:
@@ -16,9 +17,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://ensigoflove.org",
     siteName: "Seeds of Love | Ensigo of Love",
-    title: "Seeds of Love | Ensigo of Love | Child Sponsorship & Community Support",
+    title:
+      "Seeds of Love | Ensigo of Love | Child Sponsorship & Community Support",
     description:
       "Seeds of Love, also known as Ensigo of Love, supports vulnerable children, families, and communities through child sponsorship, care, education, and meaningful giving.",
+    verification: {
+      google: "4MBLvB5UjUiKQhNpG9WrVKsRA5f42_oTu-MaG3_PaDs",
+    },
     images: [
       {
         url: "/dark-logo.jpeg",
