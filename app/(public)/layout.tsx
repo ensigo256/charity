@@ -7,6 +7,9 @@ export const metadata: Metadata = {
       "Seeds of Love | Ensigo of Love | Child Sponsorship & Community Support",
     template: "%s | Seeds of Love | Ensigo of Love",
   },
+  verification: {
+    google: "4MBLvB5UjUiKQhNpG9WrVKsRA5f42_oTu-MaG3_PaDs",
+  },
   description:
     "Seeds of Love, also known as Ensigo of Love, supports vulnerable children, families, and communities through child sponsorship, care, education, and meaningful giving.",
   alternates: {
@@ -21,9 +24,7 @@ export const metadata: Metadata = {
       "Seeds of Love | Ensigo of Love | Child Sponsorship & Community Support",
     description:
       "Seeds of Love, also known as Ensigo of Love, supports vulnerable children, families, and communities through child sponsorship, care, education, and meaningful giving.",
-    verification: {
-      google: "4MBLvB5UjUiKQhNpG9WrVKsRA5f42_oTu-MaG3_PaDs",
-    },
+
     images: [
       {
         url: "/dark-logo.jpeg",
