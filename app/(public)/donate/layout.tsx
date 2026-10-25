@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: "Donate with Seeds of Love | Sponsor a Child in Uganda",
     description:
       "Make a secure donation to help provide education, care, meals, and hope for children and families in need.",
-    url: "https://ensigoflove.org/donate",
+    url: "https://ensigooflove.org/donate",
   },
 };
 

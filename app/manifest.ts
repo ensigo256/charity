@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Ensigo of Love",
     short_name: "Ensigo of Love",
     description:
-      "Support vulnerable children, families, and communities through care, education, and meaningful giving.",
+      "Seeds of Love is a charity and nonprofit organization in Uganda supporting orphans, vulnerable children, families, and communities through care, education, and meaningful giving.",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

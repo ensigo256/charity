@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/", "/_next/"],
     },
-    sitemap: "https://ensigoflove.org/sitemap.xml",
-    host: "https://ensigoflove.org",
+    sitemap: "https://ensigooflove.org/sitemap.xml",
+    host: "https://ensigooflove.org",
   };
 }

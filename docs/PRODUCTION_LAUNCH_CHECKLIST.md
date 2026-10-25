@@ -1,7 +1,7 @@
 # Production launch checklist
 
 ## 1. Site verification
-- Confirm the production domain is `https://ensigoflove.org`
+- Confirm the production domain is `https://ensigooflove.org`
 - Confirm the canonical URLs match the live site
 - Confirm `robots.txt` and `sitemap.xml` resolve correctly on the production domain
 - Verify homepage, donation, programs, about, and contact pages all load without errors

@@ -3,8 +3,8 @@ export function OrganizationSchema() {
     "@context": "https://schema.org",
     "@type": "NGO",
     name: "Ensigo of Love",
-    url: "https://ensigoflove.org",
-    logo: "https://ensigoflove.org/dark-logo.jpeg",
+    url: "https://ensigooflove.org",
+    logo: "https://ensigooflove.org/dark-logo.jpeg",
     description:
       "Ensigo of Love supports vulnerable children, families, and communities through child sponsorship, community outreach, education support, and compassionate giving.",
     email: "ensigooflove@gmail.com",

@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: "Seeds of Love Programs & Impact",
     description:
       "Learn how Seeds of Love and Ensigo of Love support children and families through community-focused programs and impact-driven care.",
-    url: "https://ensigoflove.org/programs",
+    url: "https://ensigooflove.org/programs",
   },
 };
 

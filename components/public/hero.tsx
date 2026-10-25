@@ -84,7 +84,7 @@ export function Hero() {
                 style={{ fontFamily: "Quicksand" }}
                 className="text-lg sm:text-xl md:text-2xl text-white/90 max-w-3xl mx-auto lg:mx-0 text-balance drop-shadow-md"
               >
-                {heroSubtitle?.content || "Empowering communities through education, nutrition, and sustainable development. One seed at a time."}
+                {heroSubtitle?.content || "A charity and nonprofit organization in Uganda supporting orphans, vulnerable children, families, and communities through education, nutrition, care, and sustainable development."}
               </p>
             </div>
 

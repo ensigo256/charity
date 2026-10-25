@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: "Contact Seeds of Love | Ensigo of Love",
     description:
       "Reach out to Seeds of Love and Ensigo of Love to learn more about sponsorship, volunteering, and giving opportunities.",
-    url: "https://ensigoflove.org/contact",
+    url: "https://ensigooflove.org/contact",
   },
 };
 
