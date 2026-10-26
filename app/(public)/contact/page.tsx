@@ -208,21 +208,27 @@ export default function Contact() {
                   <h4 className="font-semibold text-accent mb-4">Follow Us</h4>
                   <div className="flex gap-4">
                     <a
-                      href="#"
+                      href="https://www.facebook.com/profile.php?id=61590070790632&sk=about"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
                       aria-label="Visit our Facebook page"
                     >
                       <span className="text-lg font-bold">f</span>
                     </a>
                     <a
-                      href="#"
+                      href="https://x.com/Ensigo_ya_Love"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
-                      aria-label="Visit our Twitter page"
+                      aria-label="Visit our X profile"
                     >
                       <span className="text-lg font-bold">𝕏</span>
                     </a>
                     <a
-                      href="#"
+                      href="https://www.linkedin.com/company/SeedsOfLove"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
                       aria-label="Visit our LinkedIn page"
                     >
@@ -242,15 +248,22 @@ export default function Contact() {
                   Chat with us on WhatsApp for instant support
                 </p>
                 <Button
+                  asChild
                   variant="outline"
                   className="border-accent cursor-pointer text-accent bg-white hover:bg-accent/10 hover:text-accent-foreground"
                 >
-                  <img
-                    src="/whats-app.png"
-                    className="w-10 h-10 mr-2"
-                    alt="WhatsApp"
-                  />
-                  Chat with Us
+                  <a
+                    href="https://wa.me/13412197178"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <img
+                      src="/whats-app.png"
+                      className="w-10 h-10 mr-2"
+                      alt="WhatsApp"
+                    />
+                    Chat with Us
+                  </a>
                 </Button>
               </div>
             </Card>

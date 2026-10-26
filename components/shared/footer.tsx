@@ -158,7 +158,9 @@ export function Footer() {
                 <TikTokIcon />
               </a>
               <a
-                href="#"
+                href="https://www.linkedin.com/company/SeedsOfLove"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Visit our LinkedIn page"
                 className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground hover:bg-primary/90 transition-colors"
               >
