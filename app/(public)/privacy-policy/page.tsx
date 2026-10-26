@@ -90,7 +90,7 @@ export default function PrivacyPolicyPage() {
               Contact Us
             </h2>
             <p className="mt-3 text-sm leading-7 text-foreground/75">
-              If you have any questions about this Privacy Policy or how your information is handled, please contact us at ensigooflove@gmail.com or via our contact page.
+              If you have any questions about this Privacy Policy or how your information is handled, please contact us at info@ensigooflove.org or via our contact page.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link

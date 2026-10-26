@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   },
 
   description:
-    "Seeds of Love is a charity and nonprofit organization in Uganda supporting orphans, vulnerable children, and families through child sponsorship, education, care, and community support.",
+    "Ensigo of Love is a charity and nonprofit organization in Uganda supporting orphans, vulnerable children, and families through child sponsorship, education, care, and community support.",
   alternates: {
     canonical: "/",
   },

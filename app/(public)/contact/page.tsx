@@ -35,13 +35,15 @@ export default function Contact() {
       setFormData({ name: "", email: "", subject: "", message: "" });
       toast({
         title: "Message sent",
-        description: "Thank you. We received your message and will get back to you soon.",
+        description:
+          "Thank you. We received your message and will get back to you soon.",
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Unable to send message",
-        description: error instanceof Error ? error.message : "Please try again later.",
+        description:
+          error instanceof Error ? error.message : "Please try again later.",
       });
     } finally {
       setIsSubmitting(false);
@@ -180,15 +182,13 @@ export default function Contact() {
               <div className="space-y-6">
                 <div>
                   <h4 className="font-semibold text-accent mb-2">Email</h4>
-                  <p className="text-muted-foreground">
-                    ensigooflove@gmail.com
-                  </p>
+                  <p className="text-muted-foreground">info@ensigooflove.org</p>
                 </div>
 
                 <div>
                   <h4 className="font-semibold text-accent mb-2">Phone</h4>
-                  <p className="text-muted-foreground">+256 705-300-671</p>
-                  <p className="text-muted-foreground">+256 705-181-487</p>
+                  <p className="text-muted-foreground">+1(341)219-7178</p>
+                  <p className="text-muted-foreground">+1(808)469-5819</p>
                 </div>
 
                 <div>

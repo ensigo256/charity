@@ -383,7 +383,7 @@ export default function Step5PaymentDetails({
             <b>Contact Us:</b> +1 (650) 439-3734
           </p>
           <p className="text-xs text-muted-foreground">
-            <b>Email:</b> info@tohimglobal.org
+            <b>Email:</b> info@ensigooflove.org
           </p>
           <p className="text-xs text-muted-foreground">
             <b>Address:</b> San Carlos, CA 94070 USA

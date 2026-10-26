@@ -104,11 +104,11 @@ export function Footer() {
             >
               <p className="flex items-center gap-2">
                 <Mail className="w-5 h-5 mr-2" />
-                ensigooflove@gmail.com
+                info@ensigooflove.org
               </p>
               <p className="flex items-center gap-2">
                 <PhoneCall className="w-5 h-5 mr-2" />
-                (+256) 705-300-671 / 705-181-487
+                +1(341)219-7178
               </p>
               <p className="flex ">
                 <MapPin className="w-5 h-5 mr-2" />

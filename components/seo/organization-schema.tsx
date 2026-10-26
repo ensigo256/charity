@@ -7,7 +7,7 @@ export function OrganizationSchema() {
     logo: "https://ensigooflove.org/dark-logo.jpeg",
     description:
       "Ensigo of Love supports vulnerable children, families, and communities through child sponsorship, community outreach, education support, and compassionate giving.",
-    email: "ensigooflove@gmail.com",
+    email: "info@ensigooflove.org",
     telephone: "+256 705-300-671",
     sameAs: [
       "https://www.facebook.com/SeedsOfLove",
@@ -27,7 +27,7 @@ export function OrganizationSchema() {
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer support",
-      email: "ensigooflove@gmail.com",
+      email: "info@ensigooflove.org",
       telephone: "+256 705-300-671",
       areaServed: "UG",
       availableLanguage: ["English"],

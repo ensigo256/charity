@@ -946,7 +946,7 @@ export default function Home() {
                   <li className="flex items-center gap-2">
                     <Mail className="text-primary" size={16} />
                     <span style={{ fontFamily: "Quicksand" }}>
-                      ensigooflove@gmail.com
+                      info@ensigooflove.org
                     </span>
                   </li>
                 </ul>
