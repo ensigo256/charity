@@ -32,11 +32,8 @@ const itemVariants = {
 };
 
 const paymentMethods = [
-  //   { icon: "/card.png", value: "card", label: "Card" },
-  { icon: "/paypal.png", value: "paypal", label: "PayPal" },
   { icon: "/stripe.png", value: "stripe", label: "Stripe" },
-  { icon: "/zelle.png", value: "zelle", label: "Zelle" },
-  { icon: "/check.png", value: "check", label: "Check" },
+  { icon: "/ach.png", value: "ach", label: "ACH bank transfer" },
 ];
 
 export default function Step4PaymentMethod({
@@ -84,7 +81,7 @@ export default function Step4PaymentMethod({
               <img
                 src={method.icon}
                 alt={method.label}
-                className={`h-6 w-6 object-contain ${errors.paymentMethod ? "grayscale opacity-50" : ""} ${method.value === "stripe" || method.value === "check" || method.value === "ach" ? "h-12 w-12" : ""}`}
+                className={`h-6 w-6 object-contain ${errors.paymentMethod ? "grayscale opacity-50" : ""}`}
               />
             </div>
           ))}
@@ -101,8 +98,8 @@ export default function Step4PaymentMethod({
         className="bg-background rounded-2xl border border-border bg-background/50 p-4"
       >
         <p className="text-xs text-muted-foreground">
-          ℹ️ Choose your preferred payment method. Some methods may require
-          additional steps.
+          Stripe uses secure online checkout. ACH is a manual bank transfer;
+          instructions are emailed after you submit your pledge.
         </p>
       </motion.div>
     </motion.div>

@@ -196,15 +196,13 @@ export default function SponsorshipFormModal({
       }
 
       if (form.paymentMethod === "stripe") {
-        if (!result.paymentUrl) {
-          throw new Error("The Stripe Payment Link was not returned by the server.");
+        if (
+          typeof result.paymentPagePath !== "string" ||
+          !/^\/pay\/[A-Za-z0-9_-]{40,60}$/.test(result.paymentPagePath)
+        ) {
+          throw new Error("The secure Stripe payment page was not returned by the server.");
         }
-
-        const paymentUrl = new URL(result.paymentUrl);
-        if (paymentUrl.protocol !== "https:") {
-          throw new Error("The Stripe Payment Link is not secure.");
-        }
-        window.location.assign(paymentUrl.toString());
+        window.location.assign(result.paymentPagePath);
         return;
       }
 
@@ -392,7 +390,7 @@ className="bg-background"                       id={`publicSponsor-${field}`}
                   {errors.amount ? <p className="text-sm text-destructive">{errors.amount}</p> : null}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="publicSponsorPeriod">Period</Label>
+                  <Label htmlFor="publicSponsorPeriod">Pledge reminder cadence</Label>
                   <select id="publicSponsorPeriod" value={form.period} onChange={(event) => updateField("period", event.target.value as SponsorFormValues["period"])} className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
                     <option value="Monthly">Monthly</option>
                     <option value="3 Months">3 Months</option>
@@ -420,7 +418,7 @@ className="bg-background"                       id={`publicSponsor-${field}`}
                 </select>
                 <p className="text-sm text-muted-foreground">
                   {form.paymentMethod === "stripe"
-                    ? "Stripe will redirect you to a secure checkout page to complete the donation." 
+                  ? "Stripe checkout is a one-time payment. This cadence sets when future reminders are sent; it does not create automatic recurring charges."
                     : "You will initiate a USD transfer from your bank. This form does not collect bank account credentials or record a payment as received."}
                 </p>
               </div>

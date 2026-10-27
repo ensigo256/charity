@@ -518,7 +518,6 @@ export default function ChildrenDashboard() {
           period: "Monthly",
           remindByEmail: true,
         },
-        paymentMethod: "zelle",
         startDate: assignmentForm.startDate,
         status: "Active",
       };
@@ -694,7 +693,6 @@ export default function ChildrenDashboard() {
               sponsorId: selectedSponsor._id,
               sponsor: { name: selectedSponsor.name, email: selectedSponsor.email, phone: selectedSponsor.phone },
               donation: { amount: 0, period: "Monthly", remindByEmail: true },
-              paymentMethod: "zelle",
               startDate: assignmentForm.startDate,
               status: "Active",
             });

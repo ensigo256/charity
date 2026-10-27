@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { Card } from "@/components/ui/card";
-import { getChildDisplayName, type SponsorshipProfile } from "@/lib/child-profile";
+import {
+  getChildDisplayName,
+  type SponsorshipProfile,
+} from "@/lib/child-profile";
 
 interface SponsorshipCardProps {
   profile: SponsorshipProfile;
@@ -14,7 +17,7 @@ export default function SponsorshipCard({ profile }: SponsorshipCardProps) {
           <img
             src={profile.image.url}
             alt={getChildDisplayName(profile)}
-            className="h-56 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-56 w-full object-fit transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
             <span className="rounded-full bg-primary/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-white">

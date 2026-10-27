@@ -78,7 +78,7 @@ export default function HeroSection({
               <motion.img
                 src={profile.image.url}
                 alt={profile.firstName}
-                className="h-96 sm:h-125 w-full object-cover"
+                className="h-96 sm:h-125 w-full object-fit transition-transform duration-500 hover:scale-105"
                 initial={{ scale: 1.1, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}

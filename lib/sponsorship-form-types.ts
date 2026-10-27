@@ -28,33 +28,6 @@ export const donationSchema = z.object({
   remindByEmail: z.boolean().default(false),
 });
 
-export const paymentSchema = z.object({
-  cardName: z.string().min(3, "Cardholder name must be at least 3 characters"),
-  cardNumber: z
-    .string()
-    .regex(/^\d{16}$/, "Card number must be 16 digits")
-    .refine((val) => luhnCheck(val), "Invalid card number"),
-  expiry: z
-    .string()
-    .regex(/^(0[1-9]|1[0-2])\/\d{2}$/, "Expiry must be in MM/YY format")
-    .refine((val) => !isExpired(val), "Card has expired"),
-  cvv: z.string().regex(/^\d{3,4}$/, "CVV must be 3-4 digits"),
-});
-
-export const zellePaymentSchema = z.object({
-  zelleName: z.string().min(2, "Full name must be at least 2 characters"),
-  zellePhone: z.string().regex(/^\(?\d{3}\)?[ -]?\d{3}[ -]?\d{4}$/, "Phone must be a valid 10-digit number"),
-});
-
-export const checkPaymentSchema = z.object({
-  checkEmail: z
-    .string()
-    .optional()
-    .refine((val) => !val || /\S+@\S+\.\S+/.test(val), "Invalid email address"),
-  checkAddress: z.string().min(5, "Address must be at least 5 characters"),
-  checkDescription: z.string().optional(),
-});
-
 export const achPaymentSchema = z.object({
   achContactPhone: z.string().regex(/^\(?\d{3}\)?[ -]?\d{3}[ -]?\d{4}$/, "Phone must be a valid 10-digit number"),
   achContactEmail: z
@@ -64,7 +37,7 @@ export const achPaymentSchema = z.object({
 });
 
 export const paymentMethodSchema = z.object({
-  paymentMethod: z.enum(['zelle', 'stripe', 'check', 'paypal', 'ach', 'card'], {
+  paymentMethod: z.enum(["stripe", "ach"], {
     errorMap: () => ({ message: "Please select a payment method" }),
   }),
 });
@@ -73,10 +46,7 @@ export const paymentMethodSchema = z.object({
 export type SponsorData = z.infer<typeof sponsorBioSchema>;
 export type LocationData = z.infer<typeof locationSchema>;
 export type DonationData = z.infer<typeof donationSchema>;
-export type PaymentData = z.infer<typeof paymentSchema> &
-  Partial<z.infer<typeof zellePaymentSchema>> &
-  Partial<z.infer<typeof checkPaymentSchema>> &
-  Partial<z.infer<typeof achPaymentSchema>>;
+export type PaymentData = Partial<z.infer<typeof achPaymentSchema>>;
 export type PaymentMethodData = z.infer<typeof paymentMethodSchema>;
 
 export interface SponsorshipFormData {
@@ -110,80 +80,10 @@ export const DEFAULT_FORM_DATA: SponsorshipFormData = {
   donation: { amount: 50, period: "Monthly", remindByEmail: false },
   paymentMethod: { paymentMethod: "stripe" },
   payment: {
-    cardName: "",
-    cardNumber: "",
-    expiry: "",
-    cvv: "",
-    zelleName: "",
-    zellePhone: "",
-    checkEmail: "",
-    checkAddress: "",
-    checkDescription: "",
     achContactPhone: "",
     achContactEmail: "",
   },
 };
-
-// Helper functions
-export function luhnCheck(cardNumber: string): boolean {
-  const digits = cardNumber.replace(/\D/g, "");
-  if (digits.length !== 16) return false;
-
-  let sum = 0;
-  let isEven = false;
-
-  for (let i = digits.length - 1; i >= 0; i--) {
-    let digit = parseInt(digits[i], 10);
-
-    if (isEven) {
-      digit *= 2;
-      if (digit > 9) digit -= 9;
-    }
-
-    sum += digit;
-    isEven = !isEven;
-  }
-
-  return sum % 10 === 0;
-}
-
-export function isExpired(expiry: string): boolean {
-  const [month, year] = expiry.split("/");
-  const expiryDate = new Date(2000 + parseInt(year, 10), parseInt(month, 10), 0);
-  return expiryDate < new Date();
-}
-
-export function formatCardNumber(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 16);
-  const chunks = digits.match(/.{1,4}/g) || [];
-  return chunks.join(" ");
-}
-
-export function formatExpiry(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-  if (digits.length >= 3) {
-    return `${digits.slice(0, 2)}/${digits.slice(2, 4)}`;
-  }
-  return digits;
-}
-
-export function formatPhoneNumber(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 10);
-  if (digits.length >= 6) {
-    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
-  }
-  if (digits.length >= 3) {
-    return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
-  }
-  return digits;
-}
-
-export function maskCardNumber(cardNumber: string): string {
-  const digits = cardNumber.replace(/\D/g, "");
-  if (digits.length < 4) return cardNumber;
-  const last4 = digits.slice(-4);
-  return `**** **** **** ${last4}`;
-}
 
 export function generateSubmissionId(): string {
   return `sponsor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
