@@ -43,6 +43,12 @@ interface PledgeReceipt {
   emailDelivery: { status: string; attempts: number };
 }
 
+interface VerificationRequest {
+  requestId: string;
+  email: string;
+  expiresAt: string;
+}
+
 const initialForm: SponsorFormValues = {
   name: "",
   email: "",
@@ -81,6 +87,9 @@ export default function SponsorshipFormModal({
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [receipt, setReceipt] = useState<PledgeReceipt | null>(null);
+  const [verificationRequest, setVerificationRequest] =
+    useState<VerificationRequest | null>(null);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [copied, setCopied] = useState(false);
   const requestId = useRef("");
 
@@ -91,6 +100,7 @@ export default function SponsorshipFormModal({
     setErrors({});
     setSubmitError("");
     setReceipt(null);
+    setVerificationRequest(null);
     setCopied(false);
   }, [isOpen]);
 
@@ -186,32 +196,20 @@ export default function SponsorshipFormModal({
         },
       };
 
-      const endpoint = form.paymentMethod === "stripe"
-        ? "/sponsors/stripe/payment-link-pledges"
-        : "/sponsors/public/pledges";
-      const response = await apiRequest("POST", endpoint, payload);
+      const response = await apiRequest(
+        "POST",
+        "/sponsors/public/verification-requests",
+        payload,
+      );
       const result = await response.json();
       if (!response.ok) {
         throw new Error(result.message || "Unable to submit this pledge.");
       }
 
-      if (form.paymentMethod === "stripe") {
-        if (
-          typeof result.paymentPagePath !== "string" ||
-          !/^\/pay\/[A-Za-z0-9_-]{40,60}$/.test(result.paymentPagePath)
-        ) {
-          throw new Error("The secure Stripe payment page was not returned by the server.");
-        }
-        window.location.assign(result.paymentPagePath);
-        return;
-      }
-
-      setReceipt({
-        reference: result.pledge.reference,
-        amount: result.pledge.amount,
-        currency: result.pledge.currency,
-        period: result.pledge.period,
-        emailDelivery: result.emailDelivery || { status: "unknown", attempts: 0 },
+      setVerificationRequest({
+        requestId: result.requestId,
+        email: result.email,
+        expiresAt: result.expiresAt,
       });
     } catch (error) {
       setSubmitError(
@@ -221,6 +219,33 @@ export default function SponsorshipFormModal({
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const resendVerificationEmail = async () => {
+    if (!verificationRequest) return;
+    setIsResendingVerification(true);
+    setSubmitError("");
+    try {
+      const response = await apiRequest(
+        "POST",
+        "/sponsors/public/verification-requests/resend",
+        {
+          requestId: verificationRequest.requestId,
+          email: verificationRequest.email,
+        },
+      );
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || "Unable to resend the verification link.");
+      }
+      setSubmitError(result.message || "If available, a new link will be sent.");
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : "Unable to resend the verification link.",
+      );
+    } finally {
+      setIsResendingVerification(false);
     }
   };
 
@@ -254,14 +279,41 @@ export default function SponsorshipFormModal({
           </Button>
         </div>
 
-        {receipt ? (
+        {verificationRequest ? (
+          <section className="space-y-6 p-5 sm:p-8" aria-live="polite">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-emerald-950">
+              <h3 className="font-semibold">Verify your email to continue</h3>
+              <p className="mt-1 text-sm">
+                We sent a one-time link to <strong>{verificationRequest.email}</strong>.
+                Verify your address before any sponsor relationship is created or payment begins.
+                The link expires in 24 hours.
+              </p>
+            </div>
+            {submitError ? (
+              <p role="status" className="rounded-md border border-border p-3 text-sm text-muted-foreground">
+                {submitError}
+              </p>
+            ) : null}
+            <div className="flex flex-wrap gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isResendingVerification}
+                onClick={resendVerificationEmail}
+              >
+                {isResendingVerification ? "Sending..." : "Resend verification email"}
+              </Button>
+              <Button type="button" onClick={onClose}>Close</Button>
+            </div>
+          </section>
+        ) : receipt ? (
           <section className="space-y-6 p-5 sm:p-8" aria-live="polite">
             <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5 text-emerald-950">
               <div className="flex items-center gap-3">
                 <Check className="size-5 shrink-0" />
                 <div>
                   <h3 className="font-semibold">Your pledge is awaiting transfer verification</h3>
-                  <p className="mt-1 text-sm">The child is not reserved until staff confirm the funds arrived.</p>
+                  <p className="mt-1 text-sm">Your pledge will be activated after staff confirm the funds. The child remains open to additional supporters.</p>
                 </div>
               </div>
             </div>

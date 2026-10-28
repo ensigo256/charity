@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import type { SponsorshipProfile } from "@/lib/child-profile";
+import {
+  getChildDisplayName,
+  type SponsorshipProfile,
+} from "@/lib/child-profile";
 import { motion } from "framer-motion";
 import { use, useEffect } from "react";
 
@@ -74,13 +77,13 @@ export default function HeroSection({
             variants={itemVariants}
             className="flex flex-col gap-4 lg:order-1"
           >
-            <div className="overflow-hidden rounded-2xl sm:rounded-3xl border-2 border-white/40 shadow-2xl">
+            <div className="flex aspect-[4/3] max-h-[34rem] items-center justify-center overflow-hidden rounded-2xl border-2 border-white/40 bg-white/70 shadow-2xl sm:rounded-3xl">
               <motion.img
                 src={profile.image.url}
-                alt={profile.firstName}
-                className="h-96 sm:h-125 w-full object-fit transition-transform duration-500 hover:scale-105"
-                initial={{ scale: 1.1, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
+                alt={getChildDisplayName(profile)}
+                className="h-full w-full object-contain p-3 sm:p-5"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
               />
             </div>
@@ -135,6 +138,12 @@ export default function HeroSection({
                 {profile.givenName}
               </p>
             </div>
+
+            <p className="text-sm font-medium text-green-800">
+              {profile.sponsorCount
+                ? `Supported by ${profile.sponsorCount} current ${profile.sponsorCount === 1 ? "sponsor" : "sponsors"}. Additional support is welcome.`
+                : "No current sponsors yet. Your support can make a difference."}
+            </p>
 
             {/* CTA Button */}
             <motion.button

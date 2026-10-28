@@ -78,6 +78,7 @@ export interface SponsorshipProfile {
   reportCards?: ChildReportCard[];
   progress?: number;
   sponsorshipStatus: "Sponsored" | "Available";
+  sponsorCount?: number;
   sponsor?: ChildSponsor | null;
 }
 

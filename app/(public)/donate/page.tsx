@@ -156,7 +156,7 @@ export default function SponsorBrowsePage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <Card className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-lg backdrop-blur-sm">
                   <p className="text-sm uppercase tracking-[0.24em] text-white/70">
-                    Children available
+                    Children listed
                   </p>
                   {isLoading ? (
                     <Skeleton className="mt-3 h-12 w-32 rounded-full bg-white/20" />
@@ -449,7 +449,7 @@ export default function SponsorBrowsePage() {
                   Profiles
                 </p>
                 <h2 className="mt-3 text-3xl font-bold text-foreground">
-                  Children who need sponsorship
+                  Children in our sponsorship program
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Showing {paginatedProfiles.length} of{" "}

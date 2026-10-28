@@ -87,7 +87,7 @@ export default function SponsorshipSuccessModal({
               </div>
               <div className="space-y-2">
                 <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                  Child Sponsored
+                  Child selected
                 </p>
                 <p className="text-lg font-semibold text-foreground">
                   {submissionData.childName}
