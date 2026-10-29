@@ -18,6 +18,7 @@ export default function BlogsPage() {
 
   const { data: blogData } = useQuery<any[]>({
     queryKey: ["blogs", "published"],
+    refetchInterval: 10_000,
   });
 
   useEffect(() => {
