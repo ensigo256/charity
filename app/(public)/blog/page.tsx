@@ -17,30 +17,31 @@ export default function BlogsPage() {
   const [selectedFilter, setSelectedFilter] = useState("all");
 
   const { data: blogData } = useQuery<any[]>({
-    queryKey: ["blogs", "all"],
+    queryKey: ["blogs", "published"],
   });
 
   useEffect(() => {
     if (blogData) {
       setPosts(blogData);
     }
-    
   }, [blogData]);
 
   const filteredBlogs: any[] =
-    posts.filter((blog) => {
-      const matchesSearch =
-        blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        blog.author.toLowerCase().includes(searchTerm.toLowerCase());
+    posts
+      .filter((blog) => blog.status === "published")
+      .filter((blog) => {
+        const matchesSearch =
+          blog.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          blog.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          blog.author.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesFilter =
-        selectedFilter === "all" ||
-        selectedFilter === blog.status ||
-        (selectedFilter === "popular" && blog.likes.length > 2);
+        const matchesFilter =
+          selectedFilter === "all" ||
+          selectedFilter === blog.status ||
+          (selectedFilter === "popular" && blog.likes.length > 2);
 
-      return matchesSearch && matchesFilter;
-    }) || [];
+        return matchesSearch && matchesFilter;
+      }) || [];
 
   return (
     <main className="min-h-screen flex flex-col bg-background">

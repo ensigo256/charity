@@ -22,8 +22,8 @@ export default function BlogDetailPage({
     data: blog,
     isLoading,
     error,
-  } = useQuery<any[]>({
-    queryKey: ["blogs", `${id}`],
+  } = useQuery<any>({
+    queryKey: ["blogs", "published", `${id}`],
   });
 
   useEffect(() => {
@@ -46,7 +46,6 @@ export default function BlogDetailPage({
   if (error || !blog) {
     notFound();
   }
-
 
   return (
     <main className="min-h-screen flex flex-col bg-background">
