@@ -142,10 +142,27 @@ export default function Home() {
 
       setNewsletterStatus("success");
       setNewsletterMessage(data.message || "Thank you for subscribing!");
-      setNewsletterEmail("");
     } catch (error) {
       setNewsletterStatus("error");
       setNewsletterMessage(error instanceof Error ? error.message : "Unable to subscribe right now.");
+    } finally {
+      setNewsletterSubmitting(false);
+    }
+  };
+
+  const handleNewsletterResend = async () => {
+    const email = newsletterEmail.trim();
+    if (!email) return;
+
+    try {
+      setNewsletterSubmitting(true);
+      const response = await apiRequest("POST", "/newsletter/resend-verification", { email });
+      const data = await response.json();
+      setNewsletterStatus("success");
+      setNewsletterMessage(data.message || "A new verification email has been sent.");
+    } catch (error) {
+      setNewsletterStatus("error");
+      setNewsletterMessage(error instanceof Error ? error.message : "Unable to resend the verification email.");
     } finally {
       setNewsletterSubmitting(false);
     }
@@ -996,6 +1013,16 @@ export default function Home() {
                 <p className={`mt-2 text-xs ${newsletterStatus === "success" ? "text-emerald-200" : "text-red-200"}`}>
                   {newsletterMessage}
                 </p>
+              )}
+              {newsletterStatus === "success" && newsletterEmail && (
+                <button
+                  type="button"
+                  className="mt-2 text-xs text-white underline decoration-white/50 underline-offset-2"
+                  onClick={handleNewsletterResend}
+                  disabled={newsletterSubmitting}
+                >
+                  Resend verification email
+                </button>
               )}
             </div>
           </div>

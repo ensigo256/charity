@@ -1,47 +1,38 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { use, useState } from "react";
 import { Button } from "@/components/ui/button";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5454/api";
 
-type VerificationState = "loading" | "success" | "error";
+type VerificationState = "idle" | "loading" | "success" | "error";
 
 export default function NewsletterVerificationPage({
   params,
 }: {
   params: Promise<{ token: string }>;
 }) {
-  const [state, setState] = useState<VerificationState>("loading");
-  const [message, setMessage] = useState("Confirming your newsletter subscription...");
+  const { token } = use(params);
+  const [state, setState] = useState<VerificationState>("idle");
+  const [message, setMessage] = useState("Confirm the link below to activate your newsletter subscription.");
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function verify() {
-      const { token } = await params;
-      try {
-        const response = await fetch(`${API_BASE_URL}/newsletter/verify/${encodeURIComponent(token)}`);
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.message || "This verification link is invalid or expired.");
-        if (!cancelled) {
-          setState("success");
-          setMessage(data.message || "Your newsletter subscription has been confirmed.");
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setState("error");
-          setMessage(error instanceof Error ? error.message : "Unable to verify your subscription.");
-        }
-      }
+  async function verify() {
+    setState("loading");
+    setMessage("Confirming your newsletter subscription...");
+    try {
+      const response = await fetch(`${API_BASE_URL}/newsletter/verify/${encodeURIComponent(token)}`, {
+        method: "POST",
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message || "This verification link is invalid or expired.");
+      setState("success");
+      setMessage(data.message || "Your newsletter subscription has been confirmed.");
+    } catch (error) {
+      setState("error");
+      setMessage(error instanceof Error ? error.message : "Unable to verify your subscription.");
     }
-
-    void verify();
-    return () => {
-      cancelled = true;
-    };
-  }, [params]);
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -52,7 +43,12 @@ export default function NewsletterVerificationPage({
         <p className="mt-4 text-muted-foreground" role={state === "error" ? "alert" : "status"}>
           {message}
         </p>
-        <Button asChild className="mt-6">
+        {state !== "success" && (
+          <Button className="mt-6" onClick={verify} disabled={state === "loading"}>
+            {state === "loading" ? "Confirming..." : "Confirm subscription"}
+          </Button>
+        )}
+        <Button asChild className="mt-3">
           <Link href="/">Return to homepage</Link>
         </Button>
       </section>
