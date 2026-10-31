@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { Navbar } from "@/components/shared/navbar";
 import { Footer } from "@/components/shared/footer";
 import { Card } from "@/components/ui/card";
@@ -58,6 +58,8 @@ export default function SponsorBrowsePage() {
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [selectedEducationLevel, setSelectedEducationLevel] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
+  const profileListRef = useRef<HTMLDivElement>(null);
+  const shouldScrollToProfiles = useRef(false);
 
   const uniqueLocations = useMemo(() => {
     return [
@@ -128,10 +130,29 @@ export default function SponsorBrowsePage() {
     }
   }, [currentPage, totalPages]);
 
+  useEffect(() => {
+    if (!shouldScrollToProfiles.current) return;
+
+    shouldScrollToProfiles.current = false;
+    const frame = window.requestAnimationFrame(() => {
+      profileListRef.current?.firstElementChild?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [currentPage]);
+
   const paginatedProfiles = filteredProfiles.slice(
     (currentPage - 1) * PROFILES_PER_PAGE,
     currentPage * PROFILES_PER_PAGE,
   );
+
+  const changePage = (page: number) => {
+    shouldScrollToProfiles.current = true;
+    setCurrentPage(page);
+  };
 
   return (
     <main className="min-h-screen bg-background">
@@ -465,7 +486,10 @@ export default function SponsorBrowsePage() {
               </div> */}
             </div>
 
-            <AnimatedContainer className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+            <AnimatedContainer
+              ref={profileListRef}
+              className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3"
+            >
               {isLoading ? (
                 Array.from({ length: 6 }).map((_, index) => (
                   <AnimatedElement key={`skeleton-${index}`} variant="scaleIn">
@@ -524,9 +548,7 @@ export default function SponsorBrowsePage() {
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() =>
-                      setCurrentPage((page) => Math.max(1, page - 1))
-                    }
+                    onClick={() => changePage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
                   >
                     Previous
@@ -534,9 +556,7 @@ export default function SponsorBrowsePage() {
                   <Button
                     type="button"
                     variant="secondary"
-                    onClick={() =>
-                      setCurrentPage((page) => Math.min(totalPages, page + 1))
-                    }
+                    onClick={() => changePage(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
                   >
                     Next
