@@ -19,11 +19,6 @@ export default function SponsorshipCard({ profile }: SponsorshipCardProps) {
             alt={getChildDisplayName(profile)}
             className="h-full w-full object-contain"
           />
-          <div className="absolute inset-x-0 top-0 flex items-center justify-end p-4">
-            <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-foreground">
-              {profile.familyStatus}
-            </span>
-          </div>
         </div>
         <div className="space-y-4 p-6">
           <div>
